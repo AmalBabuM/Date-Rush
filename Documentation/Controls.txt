@@ -1,0 +1,20 @@
+DATE RUSH
+
+Launch "Date Rush.exe" and choose LET'S HARVEST.
+Keep the executable, Date Rush_Data folder and adjacent DLL files together.
+
+A / D or arrows: move
+Space / W / up: jump
+Shift: dash
+P / Escape: pause / resume
+Mouse / touch: drag along the floor, or use the on-screen controls
+
+Catch the variety shown in the target card. Collect 15 matching dates in
+90 seconds. Correct catches score 100-200 points; wrong dates cost 25.
+Jump over rolling dates to avoid a 50-point penalty.
+
+The collection explains six date varieties. Your discoveries and best
+score are saved locally.
+
+Made with Unity. Illustrations generated for this project.
+Ubuntu fonts: see Ubuntu-Font-Licence.txt.

@@ -1,0 +1,9 @@
+Windows standalone smoke check
+- Executable launched successfully.
+- Welcome screen and generated artwork rendered correctly.
+- LET'S HARVEST button entered gameplay.
+- HUD, moving conveyor trays and Arabic boy rendered in the exported player.
+- Observed matching-date feedback and a 100-point score in the standalone game.
+
+Build: succeeded, 0 build errors.
+Gameplay verification: 25 checks passed in the Unity Editor.

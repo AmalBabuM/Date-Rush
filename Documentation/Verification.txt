@@ -1,0 +1,25 @@
+PASS Game opens on the welcome screen
+PASS Arabic boy artwork is bundled
+PASS Date sprite 0 is bundled
+PASS Date sprite 1 is bundled
+PASS Date sprite 2 is bundled
+PASS Date sprite 3 is bundled
+PASS Date sprite 4 is bundled
+PASS Date sprite 5 is bundled
+PASS Scoring and combo cap
+PASS Fast date sweeps through basket without tunnelling
+PASS A date outside the basket cannot be caught
+PASS Jumping basket catches by relative swept motion
+PASS A date below the rim cannot be caught retroactively
+PASS Falling matching date is physically caught and awards 100
+PASS Wrong variety deducts 25 and does not advance harvest
+PASS Pause freezes round timer
+PASS Jump lifts player above rolling obstacle
+PASS Player lands after a jump
+PASS Dash activates and applies its cooldown
+PASS Target changes after three matching catches
+PASS Harvest goal completes the round
+PASS Date collection opens
+PASS Restart resets score, progress and clock
+PASS Timeout result is distinct from victory
+PASS No Date Rush runtime exceptions
