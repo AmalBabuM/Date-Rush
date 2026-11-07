@@ -16,12 +16,12 @@ namespace DateRush
     public static class DateCatalog
     {
         public static readonly DateVariety[] All = {
-            new DateVariety("Khalas", "An Emirati favourite. Khalas dates have a golden-brown colour and a soft, caramel-like taste.", new Color(.68f,.29f,.08f)),
-            new DateVariety("Fardh", "Fardh dates are known for their dark reddish-brown skin, firm texture and small seed.", new Color(.35f,.13f,.19f)),
-            new DateVariety("Khenaizi", "Khenaizi is a date variety grown in the UAE. Its fruit turns deep red as it ripens.", new Color(.43f,.12f,.10f)),
-            new DateVariety("Lulu", "Lulu means pearl in Arabic. These small, rounded dates are a familiar UAE variety.", new Color(.48f,.24f,.10f)),
-            new DateVariety("Sukkary", "The name Sukkary comes from the Arabic word for sugar. Look for its golden colour and crinkled skin.", new Color(.84f,.47f,.16f)),
-            new DateVariety("Ajwa", "Ajwa dates are grown around Madinah in Saudi Arabia. They are small, dark and softly textured.", new Color(.19f,.12f,.21f))
+            new DateVariety("Khalas", "A favourite in the UAE. It is golden brown, soft and tastes a little like caramel.", new Color(.68f,.29f,.08f)),
+            new DateVariety("Fardh", "Look for dark reddish-brown skin. This date is firm and has a small seed.", new Color(.35f,.13f,.19f)),
+            new DateVariety("Khenaizi", "This date grows in the UAE. It turns deep red as it gets ripe.", new Color(.43f,.12f,.10f)),
+            new DateVariety("Lulu", "Lulu means pearl in Arabic. These dates are small and round, a little like pearls.", new Color(.48f,.24f,.10f)),
+            new DateVariety("Sukkary", "Its name comes from the Arabic word for sugar. Look for golden, wrinkled skin.", new Color(.84f,.47f,.16f)),
+            new DateVariety("Ajwa", "These small, dark dates grow near Madinah in Saudi Arabia. They are soft inside.", new Color(.19f,.12f,.21f))
         };
     }
 

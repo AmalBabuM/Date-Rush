@@ -66,14 +66,14 @@ namespace DateRush.Editor
                     case 6:
                         Check(game.Player.Grounded,"Player lands after a jump");game.Player.Dash();Wait(.1f);break;
                     case 7:
-                        Check(game.Player.DashCooldown>0,"Dash activates and applies its cooldown");
+                        Check(game.Player.IsSprinting,"Shift burst activates sprint speed");
                         game.Player.ResetPlayer();Capture("02-Gameplay");Wait(.6f);break;
                     case 8:
                         // Force the rest of the round through the same scoring entry point.
                         int initialTarget=game.Target;
-                        while(game.Caught<3){var d=new GameObject("Verification date").AddComponent<DateRushDrop>();d.Initialise(game,game.Target,game.Player.BasketPosition,false);game.CatchDate(d);UnityEngine.Object.Destroy(d.gameObject);}
+                        while(game.Caught<3){var d=new GameObject("Verification date").AddComponent<DateRushDrop>();d.Initialise(game,game.Target,game.Player.BasketPosition);game.CatchDate(d);UnityEngine.Object.Destroy(d.gameObject);}
                         Check(game.Target!=initialTarget,"Target changes after three matching catches");
-                        while(game.State==RoundState.Playing){var d=new GameObject("Verification date").AddComponent<DateRushDrop>();d.Initialise(game,game.Target,game.Player.BasketPosition,false);game.CatchDate(d);UnityEngine.Object.Destroy(d.gameObject);}
+                        while(game.State==RoundState.Playing){var d=new GameObject("Verification date").AddComponent<DateRushDrop>();d.Initialise(game,game.Target,game.Player.BasketPosition);game.CatchDate(d);UnityEngine.Object.Destroy(d.gameObject);}
                         Check(game.Won && game.Caught==game.harvestGoal && game.State==RoundState.Results,"Harvest goal completes the round");Capture("03-Results");Wait(.5f);break;
                     case 9:
                         game.Collection();Check(game.State==RoundState.Collection,"Date collection opens");Capture("04-Collection");Wait(.5f);break;

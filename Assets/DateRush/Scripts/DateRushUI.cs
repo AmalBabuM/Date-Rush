@@ -17,6 +17,7 @@ namespace DateRush
         Text notice,soundLabel;
         Font bodyFont,titleFont;
         float noticeLife;
+        bool showingAboutDates;
         readonly List<Floating> floating=new List<Floating>();
         public void Initialise(DateRushGame owner)
         {
@@ -72,15 +73,21 @@ namespace DateRush
         }
         void BuildHud()
         {
-            var pause=Button("Pause",hud,14,14,56,56,"",game.Pause,sprite:DateRushArt.Shape("oval"));
-            pause.image.color=new Color(.65f,.38f,.22f);
-            Image("Left pause bar",pause.transform,19,18,6,20,DateRushArt.Cream);
-            Image("Right pause bar",pause.transform,31,18,6,20,DateRushArt.Cream);
+            var customPause=game.PauseButtonSprite;
+            var pause=Button("Pause",hud,14,14,56,56,"",game.Pause,sprite:customPause?customPause:DateRushArt.Shape("oval"));
+            pause.image.preserveAspect=true;
+            pause.image.color=customPause?Color.white:new Color(.65f,.38f,.22f);
+            if(!customPause)
+            {
+                Image("Left pause bar",pause.transform,19,18,6,20,DateRushArt.Cream);
+                Image("Right pause bar",pause.transform,31,18,6,20,DateRushArt.Cream);
+            }
             notice=Text("Target change announcement",hud,360,523,880,49,"",26,DateRushArt.Cream,true,TextAnchor.MiddleCenter);
             var outline=notice.gameObject.AddComponent<Outline>();outline.effectColor=new Color(.15f,.06f,.02f,.9f);outline.effectDistance=new Vector2(2,-2)*TextSampleScale;
         }
         void ClearModal()
         {
+            showingAboutDates=false;
             foreach(Transform child in modal){child.gameObject.SetActive(false);Destroy(child.gameObject);}
             foreach(var item in floating)if(item.text!=null)Destroy(item.text.gameObject);floating.Clear();
         }
@@ -108,12 +115,36 @@ namespace DateRush
         }
         public void ShowPause()
         {
-            var p=ModalPanel("Paused",510,236,580,417);
+            var p=ModalPanel("Paused",510,215,580,470);
             Text("Title",p,40,35,500,67,"Take a breather",40,DateRushArt.Cream,true,TextAnchor.MiddleCenter,true);
             Text("Subtitle",p,45,112,490,58,"Catch "+DateCatalog.All[game.Target].name+" dates.",22,DateRushArt.Gold,false,TextAnchor.MiddleCenter);
             Button("Resume",p,80,203,420,64,"KEEP CATCHING  >",game.Resume,true,23);
-            Button("Restart",p,80,292,199,51,"RESTART",game.BeginRound);
-            Button("Main menu",p,299,292,201,51,"MAIN MENU",game.Menu);
+            Button("About Dates",p,80,284,420,51,"ABOUT DATES",ShowAboutDates);
+            Button("Restart",p,80,353,199,51,"RESTART",game.BeginRound);
+            Button("Main menu",p,299,353,201,51,"MAIN MENU",game.Menu);
+        }
+        void ShowAboutDates()
+        {
+            var p=ModalPanel("About dates",220,110,1160,680);
+            showingAboutDates=true;
+            Text("Title",p,45,23,1070,58,"About dates",43,DateRushArt.Cream,true,TextAnchor.MiddleCenter,true);
+            Text("Subtitle",p,45,86,1070,32,"Meet the six dates you can catch.",22,DateRushArt.Gold,false,TextAnchor.MiddleCenter);
+            for(int i=0;i<DateCatalog.All.Length;i++)
+            {
+                var variety=DateCatalog.All[i];
+                float x=35+(i%2)*556,y=133+(i/2)*143;
+                var card=Image(variety.name+" fact card",p,x,y,534,125,new Color(.34f,.19f,.105f)).rectTransform;
+                Image("Date portrait",card,17,25,111,76,Color.white,game.GetDateSprite(i)).preserveAspect=true;
+                Text("Variety name",card,144,13,366,32,variety.name,24,DateRushArt.Gold,true);
+                Text("Description",card,144,48,366,63,variety.description,20,DateRushArt.Cream,false,TextAnchor.UpperLeft);
+            }
+            Button("Back to pause",p,365,584,430,58,"BACK TO PAUSE",ShowPause,true,22);
+        }
+        internal bool TryCloseAboutDates()
+        {
+            if(!showingAboutDates)return false;
+            ShowPause();
+            return true;
         }
         public void ShowResults()
         {

@@ -14,10 +14,16 @@ The Windows executable is produced at `Builds/Windows/Date Rush.exe` by **Date R
 | --- | --- | --- |
 | Move | A / D or left / right arrows | Drag along the floor |
 | Jump | Space, W, or up arrow | — |
-| Dash | Shift | — |
+| Sprint | Hold Shift with a movement key | — |
 | Pause / resume | P or Escape | Top-left pause button, then KEEP CATCHING |
 
-The game announces the target variety, and you can check it in the pause menu. Catch **15 matching dates in 90 seconds**. A match earns 100 points, increasing by 25 per consecutive match up to 200. A wrong variety deducts 25 and resets the streak. Missed targets reset the streak. Jump over the rolling date obstacle to avoid a 50-point penalty. Personal best and discovered dates are saved locally with PlayerPrefs.
+Select **Date Rush - Game Controller** in Unity to adjust **Dates Per Wave**, **Belt Speed**, **Upper Belt Drop Chance**, and **Release Edge Margin** under **Conveyor settings**. Dates Per Wave takes effect the next time you enter Play mode. **First Drop Delay** and **Drop Interval** are under **Round settings**.
+
+Under **Custom artwork**, assign a sprite to **Pause Button Sprite** to use your own top-left pause icon.
+
+Adjust **Snake Speed** under **Snake settings**. Jump over the snake's head to avoid a 50-point penalty.
+
+The game announces the target variety, and you can check it in the pause menu. Open **About Dates** there to see pictures and short facts for all six varieties while the round stays paused. Catch **15 matching dates in 90 seconds**. A match earns 100 points, increasing by 25 per consecutive match up to 200. A wrong variety deducts 25 and resets the streak. Missed targets reset the streak. Personal best and discovered dates are saved locally with PlayerPrefs.
 
 ## Reference adaptation
 
@@ -26,7 +32,7 @@ The supplied `Fried Eggs - Game.mp4` was reviewed using sampled frames throughou
 - Fox -> Emirati boy in a kandura, ghutra and agal.
 - Chickens in moving nests -> individually labelled dates riding the conveyors.
 - Falling eggs -> date fruit falling from the conveyors.
-- Rooster moving along the floor -> rolling date obstacle.
+- Rooster moving along the floor -> slithering snake.
 - Barn -> warm Arabian date market with an oasis doorway.
 - Added the assignment's date recognition, target matching, rewards and learning collection.
 
@@ -36,15 +42,16 @@ This is an original date-themed implementation of the visible reference mechanic
 
 - `DateRushGame.cs`: round state, spawning, scoring, targets, persistence and generated sound.
 - `DateRushConveyors.cs` builds the four rounded conveyor sections, rotates the gears, and moves and releases individually labelled dates.
-- `DateRushPlayer.cs`: keyboard, mouse and touch movement; jump, dash, basket position and feedback.
+- `DateRushPlayer.cs` handles movement, jumping, sprinting, and catching dates with the plate.
+- `DateRushSnake.cs` animates and moves the snake along the floor.
 - `DateRushDrop.cs`: falling pickups, rolling obstacle and collision handling.
 - `DateRushUI.cs`: native Unity Canvas, text, images, buttons, menus, HUD and collection.
-- `DateRushArt.cs`: cached sprites/materials, simple procedural wood/gears/basket shapes and coordinate conversion.
+- `DateRushArt.cs` caches sprites and materials, generates conveyor and plate art, and converts coordinates.
 - `DateVariety.cs`: six date descriptions and independently verifiable catch/scoring rules.
 - `Editor/DateRushEditor.cs`: scene setup and Windows build commands.
 - `Editor/DateRushVerification.cs`: repeatable gameplay and collision checks.
 
-The scene stores the camera and configurable game controller. On Play, the controller constructs the market, conveyors, player and native UI as inspectable Unity objects in the Hierarchy. No manual component linking is necessary. Runtime movement is deterministic script-driven 2D motion; basket catches use swept relative collision to handle jumping and fast falling dates.
+The scene stores the camera and configurable game controller. On Play, the controller constructs the market, conveyors, player and native UI as inspectable Unity objects in the Hierarchy. No manual component linking is necessary. Runtime movement uses deterministic, script-driven 2D motion. The plate uses swept collision to catch dates while jumping and at high fall speeds.
 
 The original `SampleScene.unity` is preserved. The dedicated DateRush scene is the build entry point. The project retains the existing URP and Input System packages. Assets and materials work in the 2D renderer without additional lighting setup.
 
@@ -56,4 +63,4 @@ Use **Date Rush > Run Gameplay Verification**. Results go to `Documentation/Veri
 
 ## Artwork and fonts
 
-Market, character and date illustrations were created for this project with the built-in image generation tool. Asset prompts and file mapping are in `Documentation/ArtDirection.md`. Simple gears, wooden conveyor surfaces and the basket are generated by Unity code. UI uses Ubuntu Regular and Bold under the included `Documentation/Ubuntu-Font-Licence.txt`.
+Market, character and date illustrations were created for this project with the built-in image generation tool. Asset prompts and file mapping are in `Documentation/ArtDirection.md`. Unity code generates the belt loops, catching plate, and wind trails. UI uses Ubuntu Regular and Bold under the included `Documentation/Ubuntu-Font-Licence.txt`.

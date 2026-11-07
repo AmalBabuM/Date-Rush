@@ -9,15 +9,34 @@ namespace DateRush
         [Header("Round settings")]
         [Min(1)] public int harvestGoal=15;
         [Min(10)] public float roundSeconds=90;
-        [Range(.4f,3)] public float dropInterval=1.5f;
+        [Tooltip("Base time between drops. A short random delay is added to each drop.")]
+        [Range(.4f,5)] public float dropInterval=1.5f;
+        [Tooltip("Seconds before the first date can fall in a new round.")]
+        [Range(0,8)] public float firstDropDelay=3f;
         [Tooltip("How strongly incoming dates and releases favor the target variety.")]
         [Range(0,1)] public float targetChance=.7f;
+
+        [Header("Conveyor settings")]
+        [Tooltip("Number of dates in one conveyor loop. Set this before entering Play mode.")]
+        [Range(1,36)] public int datesPerWave=18;
+        [Tooltip("Speed multiplier for dates riding the belts and for the pulley wheels.")]
+        [Range(.25f,3f)] public float beltSpeed=1f;
+        [Tooltip("Chance to use the upper belt when both the upper and lower belts have a date ready to drop.")]
+        [Range(0,1)] public float upperBeltDropChance=.75f;
+        [Tooltip("Fraction of each visible belt end where dates cannot drop.")]
+        [Range(.05f,.35f)] public float releaseEdgeMargin=.18f;
+
+        [Header("Snake settings")]
+        [Tooltip("How fast the snake moves across the floor in game pixels per second.")]
+        [Range(60,900)] public float snakeSpeed=360f;
 
         [Header("Custom artwork")]
         [Tooltip("Use a 16:9 sprite for the market background.")]
         [SerializeField] Sprite background = null;
         [Tooltip("Use a square sprite with a centered hub for the rotating conveyor wheels.")]
         [SerializeField] Sprite conveyorWheel = null;
+        [Tooltip("Optional sprite for the pause button in the top-left corner.")]
+        [SerializeField] Sprite pauseButtonSprite = null;
         [Tooltip("Optional. Assign one sprite here to override every date variety below.")]
         [SerializeField] Sprite allDates = null;
         [SerializeField] Sprite khalas = null;
@@ -43,11 +62,13 @@ namespace DateRush
         public DateRushConveyors Conveyors {get;private set;}
         public DateRushUI UI {get;private set;}
         public Camera GameCamera {get;private set;}
+        internal Sprite PauseButtonSprite=>pauseButtonSprite;
         public readonly List<DateRushDrop> Drops=new List<DateRushDrop>();
         AudioSource audioSource;
         AudioClip good,bad,victory;
-        Transform world;
-        float nextDrop,nextObstacle;
+        Transform world,backdrop;
+        float nextDrop,nextSnake;
+        DateRushSnake snake;
         int roundNumber;
         Rect lastCameraRect;
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -73,7 +94,7 @@ namespace DateRush
             GameCamera.clearFlags=CameraClearFlags.SolidColor;GameCamera.backgroundColor=DateRushArt.Ink;
             FitCamera();
             world=new GameObject("Market - 2D World").transform;world.SetParent(transform);
-            DateRushArt.Sprite("Emirati date market",background ? background : DateRushArt.Load("Market"),new Vector2(800,450),new Vector2(1600,900),-100,world);
+            backdrop=DateRushArt.Sprite("Emirati date market",background ? background : DateRushArt.Load("Market"),new Vector2(800,450),new Vector2(1656,931.5f),-100,world).transform;
             Conveyors=new GameObject("Conveyor network").AddComponent<DateRushConveyors>();
             Conveyors.transform.SetParent(world);Conveyors.Initialise(this,conveyorWheel);
             Player=new GameObject("Arabic boy - Player").AddComponent<DateRushPlayer>();
@@ -117,36 +138,48 @@ namespace DateRush
         {
             FitCamera();
             if(Keyboard.current!=null && (Keyboard.current.pKey.wasPressedThisFrame || Keyboard.current.escapeKey.wasPressedThisFrame))
-            {if(State==RoundState.Playing)Pause();else if(State==RoundState.Paused)Resume();}
+            {if(State==RoundState.Playing)Pause();else if(State==RoundState.Paused && !UI.TryCloseAboutDates())Resume();}
             if(State!=RoundState.Playing)return;
             float dt=Time.deltaTime;Elapsed+=dt;Remaining=Mathf.Max(0,Remaining-dt);
-            nextDrop-=dt;nextObstacle-=dt;
+            nextDrop-=dt;nextSnake-=dt;
             if(nextDrop<=0 && Conveyors.TryReleaseDate(Target,targetChance,out int variety,out Vector2 release))
             {
                 SpawnDrop(variety,release);
-                nextDrop=Mathf.Lerp(dropInterval,dropInterval*.72f,Elapsed/roundSeconds);
+                nextDrop=dropInterval+Random.Range(.2f,.6f);
             }
-            if(nextObstacle<=0)
-            {SpawnObstacle();nextObstacle=Random.Range(11f,15f);UI.Notice("LOOK OUT! Jump over the rolling date",DateRushArt.Gold);}
+            if(nextSnake<=0 && !snake)
+            {SpawnSnake();nextSnake=Random.Range(11f,15f);}
             if(Remaining<=0)Finish(false);
+        }
+        void LateUpdate()
+        {
+            if(State!=RoundState.Playing && State!=RoundState.Menu)return;
+            Vector3 offset=Vector3.zero;
+            if(State==RoundState.Playing)
+            {
+                float playerX=Mathf.Clamp(Player.transform.position.x/6.9f,-1,1);
+                offset=new Vector3(-playerX*.21f,-Mathf.Clamp01(Player.Height/150f)*.055f,0);
+            }
+            backdrop.localPosition=Vector3.Lerp(backdrop.localPosition,offset,1-Mathf.Exp(-7*Time.deltaTime));
         }
         public void BeginRound()
         {
-            ClearDrops();Score=Caught=Combo=Missed=0;Elapsed=0;
-            Target=roundNumber++%6;Remaining=roundSeconds;nextDrop=1.2f;nextObstacle=12;
+            ClearRoundObjects();Score=Caught=Combo=Missed=0;Elapsed=0;
+            Target=roundNumber++%6;Remaining=roundSeconds;nextDrop=firstDropDelay;nextSnake=12;
             State=RoundState.Playing;
-            Player.ResetPlayer();Conveyors.ResetDates();UI.ShowHud();
+            Player.ResetPlayer();Player.ShowTargetDates(Target);Conveyors.ResetDates();UI.ShowHud();
             UI.Notice("CATCH "+DateCatalog.All[Target].name.ToUpper()+" DATES",DateRushArt.Gold);
         }
         public void SpawnDrop(int variety,Vector2 position)
         {
             var drop=new GameObject(DateCatalog.All[variety].name+" - falling date").AddComponent<DateRushDrop>();
-            drop.transform.SetParent(world);drop.Initialise(this,variety,position,false);Drops.Add(drop);
+            drop.transform.SetParent(world);drop.Initialise(this,variety,position);Drops.Add(drop);
         }
-        public void SpawnObstacle()
+        void SpawnSnake()
         {
-            var drop=new GameObject("Rolling date - jump obstacle").AddComponent<DateRushDrop>();
-            drop.transform.SetParent(world);drop.Initialise(this,5,new Vector2(1670,786),true);Drops.Add(drop);
+            snake=new GameObject("Snake - jump obstacle").AddComponent<DateRushSnake>();
+            snake.transform.SetParent(world,false);snake.Initialise(this);
+            UI.Notice("BEWARE OF SNAKES! Jump over them.",DateRushArt.Gold);
         }
         public void CatchDate(DateRushDrop drop)
         {
@@ -158,16 +191,16 @@ namespace DateRush
             Caught++;Discoveries[Target]++;PlayerPrefs.SetInt("DateRush.Discovery."+Target,Discoveries[Target]);
             if(Caught>=harvestGoal){Finish(true);return;}
             if(Caught%3==0)
-            {Target=(Target+1)%6;UI.Notice("NEW TARGET - "+DateCatalog.All[Target].name.ToUpper(),DateRushArt.Gold);}
+            {Target=(Target+1)%6;Player.ShowTargetDates(Target);UI.Notice("NEW TARGET - "+DateCatalog.All[Target].name.ToUpper(),DateRushArt.Gold);}
         }
         public void MissDate(int variety,Vector2 at)
         {if(variety!=Target)return;Missed++;Combo=0;UI.FloatText(at+new Vector2(0,-45),"MISSED",DateRushArt.Cream);}
-        public void HitObstacle()
-        {Combo=0;Score=Mathf.Max(0,Score-50);Play(bad);UI.FloatText(Player.BasketPosition+new Vector2(0,-70),"-50  JUMP THE ROLLER!",DateRushArt.Coral);}
+        internal void HitSnake()
+        {Combo=0;Score=Mathf.Max(0,Score-50);Play(bad);UI.FloatText(Player.BasketPosition+new Vector2(0,-70),"-50  SNAKE BITE!",DateRushArt.Coral);}
         public void Pause(){if(State!=RoundState.Playing)return;State=RoundState.Paused;UI.ShowPause();}
         public void Resume(){if(State!=RoundState.Paused)return;State=RoundState.Playing;UI.ShowHud();}
-        public void Menu(){State=RoundState.Menu;ClearDrops();UI.ShowMenu();}
-        public void Collection(){State=RoundState.Collection;ClearDrops();UI.ShowCollection();}
+        public void Menu(){State=RoundState.Menu;ClearRoundObjects();UI.ShowMenu();}
+        public void Collection(){State=RoundState.Collection;ClearRoundObjects();UI.ShowCollection();}
         public void ToggleSound(){Muted=!Muted;PlayerPrefs.SetInt("DateRush.Muted",Muted?1:0);PlayerPrefs.Save();UI.RefreshSound();}
         public void Finish(bool success)
         {
@@ -175,7 +208,13 @@ namespace DateRush
             if(Score>Best){Best=Score;PlayerPrefs.SetInt("DateRush.Best",Best);}
             PlayerPrefs.Save();if(success)Play(victory);UI.ShowResults();
         }
-        void ClearDrops(){foreach(var drop in Drops)if(drop!=null)Destroy(drop.gameObject);Drops.Clear();}
+        void ClearRoundObjects()
+        {
+            foreach(var drop in Drops)if(drop!=null)Destroy(drop.gameObject);
+            Drops.Clear();
+            if(snake)Destroy(snake.gameObject);
+            snake=null;
+        }
         void Play(AudioClip clip){if(!Muted)audioSource.PlayOneShot(clip,.4f);}
         void OnApplicationFocus(bool focus){if(!focus)Pause();}
         void OnDestroy(){Destroy(good);Destroy(bad);Destroy(victory);DateRushArt.Release();}
