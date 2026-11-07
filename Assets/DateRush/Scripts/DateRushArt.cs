@@ -20,13 +20,22 @@ namespace DateRush
         public static Sprite Shape(string name)
         {
             if(cache.TryGetValue(name,out var result))return result;
-            int w=name=="wood"?256:128,h=name=="wood"?64:128;
+            bool beltShape=name=="belt rim" || name=="wood";
+            int w=beltShape?256:128,h=name=="belt rim"?70:name=="wood"?58:128;
+            float radius=h*.5f;
             var t=new Texture2D(w,h,TextureFormat.RGBA32,false){name="Date Rush - "+name,wrapMode=TextureWrapMode.Clamp,filterMode=FilterMode.Bilinear};
             var pixels=new Color[w*h];
             for(int y=0;y<h;y++)for(int x=0;x<w;x++)
             {
                 float nx=(x+.5f)/w*2-1,ny=(y+.5f)/h*2-1,alpha=1,shade=1;
-                if(name=="oval" || name=="ring")
+                if(beltShape)
+                {
+                    float dx=Mathf.Max(0,Mathf.Abs(x+.5f-w*.5f)-(w*.5f-radius));
+                    float dy=y+.5f-radius;
+                    alpha=Mathf.Clamp01(radius+.5f-Mathf.Sqrt(dx*dx+dy*dy));
+                    if(name=="wood")shade=.8f+.12f*Mathf.Sin(y*.7f+Mathf.Sin(x*.04f)*1.3f)+.04f*Mathf.Sin(x*.19f+y*1.8f);
+                }
+                else if(name=="oval" || name=="ring")
                 {float d=Mathf.Sqrt(nx*nx+ny*ny);alpha=Mathf.Clamp01((1-d)*45);if(name=="ring")alpha*=Mathf.Clamp01((d-.65f)*45);}
                 else if(name=="rounded")
                 {float dx=Mathf.Max(Mathf.Abs(nx)-.82f,0),dy=Mathf.Max(Mathf.Abs(ny)-.82f,0);alpha=Mathf.Clamp01((.18f-Mathf.Sqrt(dx*dx+dy*dy))*60);}
@@ -40,19 +49,26 @@ namespace DateRush
                     pixels[y*w+x]=new Color(.48f+weave+(rim?.18f:0),.28f+weave,.1f+weave*.5f,alpha);
                     continue;
                 }
-                else if(name=="wood")shade=.8f+.12f*Mathf.Sin(y*.7f+Mathf.Sin(x*.04f)*1.3f)+.04f*Mathf.Sin(x*.19f+y*1.8f);
                 pixels[y*w+x]=new Color(shade,shade,shade,alpha);
             }
             t.SetPixels(pixels);t.Apply();owned.Add(t);
-            result=UnityEngine.Sprite.Create(t,new Rect(0,0,w,h),new Vector2(.5f,.5f),100,0,SpriteMeshType.FullRect,new Vector4(12,12,12,12));
+            var border=beltShape?new Vector4(radius,0,radius,0):new Vector4(12,12,12,12);
+            result=UnityEngine.Sprite.Create(t,new Rect(0,0,w,h),new Vector2(.5f,.5f),100,0,SpriteMeshType.FullRect,border);
             cache[name]=result;owned.Add(result);return result;
         }
         public static SpriteRenderer Sprite(string name,Sprite sprite,Vector2 position,Vector2 size,int order,Transform parent,Color? tint=null)
         {
             var obj=new GameObject(name);obj.transform.SetParent(parent,false);obj.transform.position=World(position);
-            var renderer=obj.AddComponent<SpriteRenderer>();renderer.sprite=sprite;renderer.sortingOrder=order;renderer.color=tint??Color.white;
+            var renderer=obj.AddComponent<SpriteRenderer>();renderer.sortingOrder=order;renderer.color=tint??Color.white;
+            SetSprite(renderer,sprite,size);
+            return renderer;
+        }
+        internal static void SetSprite(SpriteRenderer renderer, Sprite sprite, Vector2 size)
+        {
+            renderer.sprite=sprite;
             renderer.sharedMaterial=MaterialFor(sprite);
-            obj.transform.localScale=new Vector3(size.x/sprite.rect.width,size.y/sprite.rect.height,1);return renderer;
+            float pixelsToWorld = sprite.pixelsPerUnit / 100f;
+            renderer.transform.localScale=new Vector3(size.x/sprite.rect.width*pixelsToWorld,size.y/sprite.rect.height*pixelsToWorld,1);
         }
         public static Material MaterialFor(Sprite sprite)
         {
@@ -61,8 +77,9 @@ namespace DateRush
             materials[sprite.texture]=result;owned.Add(result);return result;
         }
         public static Sprite Date(int variety)=>Load("Date"+variety);
-        public static SpriteRenderer DateSprite(string name,int variety,Vector2 pos,Vector2 size,int order,Transform parent)
+        public static SpriteRenderer DateSprite(string name,int variety,Vector2 pos,Vector2 size,int order,Transform parent,Sprite replacement=null)
         {
+            if(replacement)return Sprite(name,replacement,pos,size,order,parent);
             bool hasArt=Resources.Load<Texture2D>("Date"+variety)!=null;
             return Sprite(name,hasArt?Date(variety):Shape("oval"),pos,size,order,parent,hasArt?Color.white:DateCatalog.All[variety].color);
         }

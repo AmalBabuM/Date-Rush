@@ -9,18 +9,20 @@ namespace DateRush
         DateRushGame game;
         float velocity,rotation;
         SpriteRenderer sprite,glow;
+        MeshRenderer nameTag;
         public void Initialise(DateRushGame owner,int variety,Vector2 position,bool obstacle)
         {
             game=owner;Variety=variety;Position=position;Obstacle=obstacle;transform.position=DateRushArt.World(position);
             glow=DateRushArt.Sprite("Target glow",DateRushArt.Shape("ring"),position,new Vector2(obstacle?94:66,obstacle?94:55),25,transform,obstacle?DateRushArt.Coral:DateRushArt.Gold);
-            sprite=DateRushArt.DateSprite("Date fruit",variety,position,obstacle?new Vector2(81,67):new Vector2(53,39),26,transform);
+            sprite=game.CreateDateSprite("Date fruit",variety,position,obstacle?new Vector2(81,67):new Vector2(53,39),26,transform);
             if(!obstacle)
             {
                 var tag=new GameObject("Falling date name",typeof(TextMesh));tag.transform.SetParent(transform,false);
                 var label=tag.GetComponent<TextMesh>();label.text=DateCatalog.All[variety].name;label.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");label.fontSize=48;label.characterSize=.034f;label.anchor=TextAnchor.UpperCenter;label.color=DateRushArt.Cream;
-                label.GetComponent<MeshRenderer>().sharedMaterial=label.font.material;label.GetComponent<MeshRenderer>().sortingOrder=30;
+                nameTag=label.GetComponent<MeshRenderer>();nameTag.sharedMaterial=label.font.material;nameTag.sortingOrder=30;
                 tag.transform.position=DateRushArt.World(position+new Vector2(0,26));
             }
+            RefreshTargetMarker();
             var hitbox=gameObject.AddComponent<CircleCollider2D>();hitbox.isTrigger=true;hitbox.radius=obstacle?.35f:.23f;
             MoveVisuals(position);
         }
@@ -45,8 +47,14 @@ namespace DateRush
             }
             MoveVisuals(previous);
             sprite.transform.rotation=Quaternion.Euler(0,0,rotation);
-            glow.enabled=Obstacle || Variety==game.Target;
             glow.color=Obstacle?DateRushArt.Coral:new Color(1,.76f,.35f,.55f+Mathf.Sin(Time.time*8)*.2f);
+        }
+        void LateUpdate()=>RefreshTargetMarker();
+        void RefreshTargetMarker()
+        {
+            bool target=game.IsTargetDate(Variety);
+            glow.enabled=Obstacle || target;
+            if(nameTag)nameTag.enabled=target;
         }
         void MoveVisuals(Vector2 previous)
         {

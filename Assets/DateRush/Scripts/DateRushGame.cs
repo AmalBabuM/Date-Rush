@@ -10,7 +10,23 @@ namespace DateRush
         [Min(1)] public int harvestGoal=15;
         [Min(10)] public float roundSeconds=90;
         [Range(.4f,3)] public float dropInterval=1.5f;
+        [Tooltip("How strongly incoming dates and releases favor the target variety.")]
         [Range(0,1)] public float targetChance=.7f;
+
+        [Header("Custom artwork")]
+        [Tooltip("Use a 16:9 sprite for the market background.")]
+        [SerializeField] Sprite background = null;
+        [Tooltip("Use a square sprite with a centered hub for the rotating conveyor wheels.")]
+        [SerializeField] Sprite conveyorWheel = null;
+        [Tooltip("Optional. Assign one sprite here to override every date variety below.")]
+        [SerializeField] Sprite allDates = null;
+        [SerializeField] Sprite khalas = null;
+        [SerializeField] Sprite fardh = null;
+        [SerializeField] Sprite khenaizi = null;
+        [SerializeField] Sprite lulu = null;
+        [SerializeField] Sprite sukkary = null;
+        [SerializeField] Sprite ajwa = null;
+
         public RoundState State {get;private set;}=RoundState.Menu;
         public int Target {get;private set;}
         public int Score {get;private set;}
@@ -57,9 +73,9 @@ namespace DateRush
             GameCamera.clearFlags=CameraClearFlags.SolidColor;GameCamera.backgroundColor=DateRushArt.Ink;
             FitCamera();
             world=new GameObject("Market - 2D World").transform;world.SetParent(transform);
-            DateRushArt.Sprite("Emirati date market",DateRushArt.Load("Market"),new Vector2(800,450),new Vector2(1600,900),-100,world);
+            DateRushArt.Sprite("Emirati date market",background ? background : DateRushArt.Load("Market"),new Vector2(800,450),new Vector2(1600,900),-100,world);
             Conveyors=new GameObject("Conveyor network").AddComponent<DateRushConveyors>();
-            Conveyors.transform.SetParent(world);Conveyors.Initialise(this);
+            Conveyors.transform.SetParent(world);Conveyors.Initialise(this,conveyorWheel);
             Player=new GameObject("Arabic boy - Player").AddComponent<DateRushPlayer>();
             Player.transform.SetParent(world);Player.Initialise(this);
             UI=new GameObject("Date Rush - UI").AddComponent<DateRushUI>();UI.Initialise(this);
@@ -67,6 +83,30 @@ namespace DateRush
             good=Tone(670,.14f);bad=Tone(150,.2f);victory=Tone(880,.45f);
             Remaining=roundSeconds;UI.ShowMenu();
         }
+        Sprite DateOverride(int variety)
+        {
+            if(allDates)return allDates;
+            return variety switch
+            {
+                0 => khalas,
+                1 => fardh,
+                2 => khenaizi,
+                3 => lulu,
+                4 => sukkary,
+                5 => ajwa,
+                _ => null
+            };
+        }
+        internal Sprite GetDateSprite(int variety)
+        {
+            var sprite = DateOverride(variety);
+            return sprite ? sprite : DateRushArt.Date(variety);
+        }
+        internal SpriteRenderer CreateDateSprite(string name, int variety, Vector2 position, Vector2 size, int order, Transform parent)
+        {
+            return DateRushArt.DateSprite(name,variety,position,size,order,parent,DateOverride(variety));
+        }
+        internal bool IsTargetDate(int variety)=>variety==Target && (State==RoundState.Playing || State==RoundState.Paused);
         void FitCamera()
         {
             float aspect=Screen.width/(float)Mathf.Max(Screen.height,1);
@@ -81,22 +121,21 @@ namespace DateRush
             if(State!=RoundState.Playing)return;
             float dt=Time.deltaTime;Elapsed+=dt;Remaining=Mathf.Max(0,Remaining-dt);
             nextDrop-=dt;nextObstacle-=dt;
-            if(nextDrop<=0)
+            if(nextDrop<=0 && Conveyors.TryReleaseDate(Target,targetChance,out int variety,out Vector2 release))
             {
-                Vector2 release=Conveyors.ReleasePoint(Target,targetChance,out int variety,out int trayIndex);
-                SpawnDrop(variety,release);Conveyors.Pulse(trayIndex);
+                SpawnDrop(variety,release);
                 nextDrop=Mathf.Lerp(dropInterval,dropInterval*.72f,Elapsed/roundSeconds);
             }
             if(nextObstacle<=0)
             {SpawnObstacle();nextObstacle=Random.Range(11f,15f);UI.Notice("LOOK OUT! Jump over the rolling date",DateRushArt.Gold);}
             if(Remaining<=0)Finish(false);
-            UI.UpdateHud();
         }
         public void BeginRound()
         {
             ClearDrops();Score=Caught=Combo=Missed=0;Elapsed=0;
             Target=roundNumber++%6;Remaining=roundSeconds;nextDrop=1.2f;nextObstacle=12;
-            Player.ResetPlayer();Conveyors.ResetTrays();State=RoundState.Playing;UI.ShowHud();
+            State=RoundState.Playing;
+            Player.ResetPlayer();Conveyors.ResetDates();UI.ShowHud();
             UI.Notice("CATCH "+DateCatalog.All[Target].name.ToUpper()+" DATES",DateRushArt.Gold);
         }
         public void SpawnDrop(int variety,Vector2 position)

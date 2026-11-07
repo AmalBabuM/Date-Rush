@@ -12,20 +12,20 @@ The Windows executable is produced at `Builds/Windows/Date Rush.exe` by **Date R
 
 | Action | Keyboard | Mouse / touchscreen |
 | --- | --- | --- |
-| Move | A / D or left / right arrows | Drag along the floor, or hold the arrow buttons |
-| Jump | Space, W, or up arrow | JUMP button |
-| Dash | Shift | DASH button |
-| Pause / resume | P or Escape | PAUSE, then KEEP CATCHING |
+| Move | A / D or left / right arrows | Drag along the floor |
+| Jump | Space, W, or up arrow | — |
+| Dash | Shift | — |
+| Pause / resume | P or Escape | Top-left pause button, then KEEP CATCHING |
 
-Watch the target variety in the top bar. Catch **15 matching dates in 90 seconds**. A match earns 100 points, increasing by 25 per consecutive match up to 200. A wrong variety deducts 25 and resets the streak. Missed targets reset the streak. Jump over the rolling date obstacle to avoid a 50-point penalty. Personal best and discovered dates are saved locally with PlayerPrefs.
+The game announces the target variety, and you can check it in the pause menu. Catch **15 matching dates in 90 seconds**. A match earns 100 points, increasing by 25 per consecutive match up to 200. A wrong variety deducts 25 and resets the streak. Missed targets reset the streak. Jump over the rolling date obstacle to avoid a 50-point penalty. Personal best and discovered dates are saved locally with PlayerPrefs.
 
 ## Reference adaptation
 
 The supplied `Fried Eggs - Game.mp4` was reviewed using sampled frames throughout its full 60-second duration, including half-second samples of the last 14 seconds. Its visible design informed the four conveyor sections, moving sources, falling pickups, horizontal movement, jumping and dash-like bursts.
 
 - Fox -> Emirati boy in a kandura, ghutra and agal.
-- Chickens in moving nests -> labelled trays of date varieties.
-- Falling eggs -> falling date fruit from the moving trays.
+- Chickens in moving nests -> individually labelled dates riding the conveyors.
+- Falling eggs -> date fruit falling from the conveyors.
 - Rooster moving along the floor -> rolling date obstacle.
 - Barn -> warm Arabian date market with an oasis doorway.
 - Added the assignment's date recognition, target matching, rewards and learning collection.
@@ -35,7 +35,7 @@ This is an original date-themed implementation of the visible reference mechanic
 ## Unity structure
 
 - `DateRushGame.cs`: round state, spawning, scoring, targets, persistence and generated sound.
-- `DateRushConveyors.cs`: four conveyor sections, rotating gears, moving date trays and visible release sources.
+- `DateRushConveyors.cs` builds the four rounded conveyor sections, rotates the gears, and moves and releases individually labelled dates.
 - `DateRushPlayer.cs`: keyboard, mouse and touch movement; jump, dash, basket position and feedback.
 - `DateRushDrop.cs`: falling pickups, rolling obstacle and collision handling.
 - `DateRushUI.cs`: native Unity Canvas, text, images, buttons, menus, HUD and collection.

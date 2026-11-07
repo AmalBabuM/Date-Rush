@@ -12,7 +12,6 @@ namespace DateRush
         public float DashCooldown {get;private set;}
         public bool Grounded=>Height<=.01f;
         public bool Invulnerable=>hurtTime>0;
-        public int TouchAxis {get;set;}
         DateRushGame game;
         Transform figure,basket,shadow;
         SpriteRenderer body,basketRenderer;
@@ -30,12 +29,12 @@ namespace DateRush
             ResetPlayer();
         }
         public void ResetPlayer()
-        {x=desiredX=800;Height=velocityY=dashTime=DashCooldown=hurtTime=walk=feedback=0;facing=1;TouchAxis=0;moving=false;RefreshPose(0);PreviousBasketPosition=BasketPosition;}
+        {x=desiredX=800;Height=velocityY=dashTime=DashCooldown=hurtTime=walk=feedback=0;facing=1;moving=false;RefreshPose(0);PreviousBasketPosition=BasketPosition;}
         void Update()
         {
             if(game.State!=RoundState.Playing)return;
             PreviousBasketPosition=BasketPosition;
-            float dt=Mathf.Min(Time.deltaTime,.05f);var k=Keyboard.current;float axis=TouchAxis;
+            float dt=Mathf.Min(Time.deltaTime,.05f);var k=Keyboard.current;float axis=0;
             if(k!=null)
             {
                 if(k.aKey.isPressed || k.leftArrowKey.isPressed)axis--;

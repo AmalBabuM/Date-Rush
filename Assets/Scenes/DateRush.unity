@@ -152,6 +152,15 @@ MonoBehaviour:
   roundSeconds: 90
   dropInterval: 1.5
   targetChance: 0.7
+  background: {fileID: 21300000, guid: de2e685add7b17548b03b58385ff7522, type: 3}
+  conveyorWheel: {fileID: 21300000, guid: eaa10a88d558e6c419f9afb276368e93, type: 3}
+  allDates: {fileID: 0}
+  khalas: {fileID: 21300000, guid: 6cdb276abbd3a10408afd30c4e78d217, type: 3}
+  fardh: {fileID: 21300000, guid: 7192205557065dc46ac6fcb7fc411276, type: 3}
+  khenaizi: {fileID: 21300000, guid: 60f4e24443b7dea40bdcb27bb4a8ccc1, type: 3}
+  lulu: {fileID: 21300000, guid: a6d35b0779a942247afbe1a239f7bde0, type: 3}
+  sukkary: {fileID: 21300000, guid: 64983291434c647468b7fab7c17a005b, type: 3}
+  ajwa: {fileID: 21300000, guid: e7d725a34ef040d45b516e6dfbd0194e, type: 3}
 --- !u!4 &970022837
 Transform:
   m_ObjectHideFlags: 0
