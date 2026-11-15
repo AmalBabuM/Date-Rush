@@ -100,28 +100,60 @@ namespace DateRush
         public void ShowHud(){ClearModal();modal.gameObject.SetActive(false);hud.gameObject.SetActive(true);}
         public void ShowMenu()
         {
-            var p=ModalPanel("Welcome to the market",416,116,768,638);
-            Text("Kicker",p,48,27,672,28,"A LITTLE HARVEST. A BIG DISCOVERY.",18,DateRushArt.Gold,false,TextAnchor.MiddleCenter);
-            Text("Title",p,28,76,712,96,"Date Rush",76,DateRushArt.Cream,true,TextAnchor.MiddleCenter,true);
-            Text("Tagline",p,48,182,672,43,"Catch the flavour of the Emirates",25,DateRushArt.Gold,false,TextAnchor.MiddleCenter);
-            for(int i=0;i<6;i++)
-            {Image("Date portrait",p,68+i*107,258,84,57,Color.white,game.GetDateSprite(i)).preserveAspect=true;Text("Variety",p,60+i*107,322,99,26,DateCatalog.All[i].name,18,DateRushArt.Cream,false,TextAnchor.MiddleCenter);}
-            Text("How to play",p,80,373,608,70,"Catch the announced date variety.\nCollect 15 matches before the market closes!",23,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
-            Text("Rewards",p,76,454,616,29,"MATCH +100   /   WRONG -25   /   STREAKS EARN MORE",18,DateRushArt.Gold,false,TextAnchor.MiddleCenter);
-            Button("Start harvest",p,128,507,512,64,"LET'S HARVEST  >",game.BeginRound,true,24);
-            Button("View collection",p,128,586,245,38,"DATE COLLECTION",game.Collection,fontSize:18);
-            var s=Button("Menu sound",p,393,586,247,38,game.Muted?"SOUND OFF":"SOUND ON",game.ToggleSound,fontSize:18);soundLabel=s.GetComponentInChildren<Text>();
-            Text("Personal best",modal,500,779,600,32,"PERSONAL BEST  /  "+game.Best.ToString("N0"),19,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
+            PrepareFullScreenMenu();
+            Text("Title",modal,400,175,800,110,"DATE RUSH",76,DateRushArt.Cream,true,TextAnchor.MiddleCenter,true);
+            Button("Start game",modal,560,345,480,72,"START GAME",game.BeginRound,true,25);
+            Button("Instructions",modal,560,440,480,72,"INSTRUCTIONS",ShowInstructions,fontSize:23);
+            Button("Controls",modal,560,535,480,72,"CONTROLS",ShowControls,fontSize:23);
+        }
+        void PrepareFullScreenMenu()
+        {
+            ClearModal();hud.gameObject.SetActive(false);modal.gameObject.SetActive(true);
+            Image("Menu background image",modal,0,0,1600,900,Color.white,game.SharedBackgroundSprite);
+            var shade=Image("Menu background shade",modal,0,0,1600,900,new Color(.07f,.03f,.01f,.2f));shade.raycastTarget=true;
+        }
+        void ShowInstructions()
+        {
+            PrepareFullScreenMenu();
+            Text("Title",modal,300,180,1000,80,"HOW TO PLAY",48,DateRushArt.Cream,true,TextAnchor.MiddleCenter,true);
+            Text("Instructions",modal,360,300,880,230,"Catch the date variety shown in your briefing.\n\nEvery 3 correct catches starts a new wave with a different date. Pause at any time to see the current date and its details.\n\nCatch the required number before the timer runs out. Matching dates earn points; wrong dates lose points.",25,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
+            Button("Back to menu",modal,600,625,400,64,"BACK TO MENU",ShowMenu,true,22);
+        }
+        void ShowControls()
+        {
+            PrepareFullScreenMenu();
+            Text("Title",modal,300,190,1000,80,"GAME CONTROLS",48,DateRushArt.Cream,true,TextAnchor.MiddleCenter,true);
+            Text("Controls",modal,360,320,880,200,"MOVE   A / D or Left / Right Arrow\n\nJUMP   Space, W, or Up Arrow\n\nDASH   Shift",27,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
+            Button("Back to menu",modal,600,625,400,64,"BACK TO MENU",ShowMenu,true,22);
         }
         public void ShowPause()
         {
-            var p=ModalPanel("Paused",510,215,580,470);
-            Text("Title",p,40,35,500,67,"Take a breather",40,DateRushArt.Cream,true,TextAnchor.MiddleCenter,true);
-            Text("Subtitle",p,45,112,490,58,"Catch "+DateCatalog.All[game.Target].name+" dates.",22,DateRushArt.Gold,false,TextAnchor.MiddleCenter);
-            Button("Resume",p,80,203,420,64,"KEEP CATCHING  >",game.Resume,true,23);
-            Button("About Dates",p,80,284,420,51,"ABOUT DATES",ShowAboutDates);
-            Button("Restart",p,80,353,199,51,"RESTART",game.BeginRound);
-            Button("Main menu",p,299,353,201,51,"MAIN MENU",game.Menu);
+            var p=ModalPanel("Paused",460,146,680,610);
+            var target=DateCatalog.All[game.Target];
+            Text("Title",p,40,26,600,57,"Game paused",38,DateRushArt.Cream,true,TextAnchor.MiddleCenter,true);
+            Image("Current target date",p,267,96,146,100,Color.white,game.GetDateSprite(game.Target)).preserveAspect=true;
+            Text("Wave",p,50,202,580,27,"WAVE "+(game.Caught/3+1)+"  •  CATCH THIS DATE",16,DateRushArt.Gold,true,TextAnchor.MiddleCenter);
+            Text("Target name",p,45,230,590,43,target.name,30,DateRushArt.Cream,true,TextAnchor.MiddleCenter);
+            Text("Target fact",p,68,276,544,75,target.description,19,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
+            Text("Pause controls",p,50,353,580,28,"MOVE A / D or ← →   •   JUMP Space   •   DASH Shift",16,DateRushArt.Gold,false,TextAnchor.MiddleCenter);
+            Button("Resume",p,94,400,492,58,"RESUME GAME  >",game.Resume,true,22);
+            Button("About Dates",p,94,472,492,45,"ABOUT ALL DATES",ShowAboutDates);
+            Button("Restart",p,94,529,235,45,"RESTART",game.BeginRound);
+            Button("Main menu",p,351,529,235,45,"MAIN MENU",game.Menu);
+        }
+        public void ShowTargetBriefing()
+        {
+            var p=ModalPanel("Starting date briefing",390,111,820,678);
+            var target=DateCatalog.All[game.Target];
+            Text("Kicker",p,45,25,730,29,"YOUR FIRST HARVEST",17,DateRushArt.Gold,true,TextAnchor.MiddleCenter);
+            Text("Title",p,45,59,730,58,"Know your target",38,DateRushArt.Cream,true,TextAnchor.MiddleCenter,true);
+            Image("Starting date",p,325,132,170,117,Color.white,game.GetDateSprite(game.Target)).preserveAspect=true;
+            Text("Date name",p,70,253,680,45,target.name,31,DateRushArt.Gold,true,TextAnchor.MiddleCenter);
+            Text("Date information",p,100,303,620,75,target.description,21,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
+            Text("Goal",p,70,390,680,33,"Catch "+game.harvestGoal+" matching dates before the "+game.roundSeconds+"-second timer ends.",19,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
+            Text("Controls",p,70,432,680,70,"MOVE  A / D or ← →\nJUMP  Space / W / ↑     DASH  Shift",19,DateRushArt.Gold,true,TextAnchor.MiddleCenter);
+            Button("Begin catching",p,145,526,530,62,"START CATCHING  >",game.StartPlaying,true,23);
+            Text("Wave changes",p,70,600,680,35,"Your target changes every 3 correct catches. Pause to see its details.",17,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
         }
         void ShowAboutDates()
         {

@@ -8,17 +8,15 @@ namespace DateRush
         DateRushGame game;
         float velocity,rotation,groundAge;
         bool landed;
-        SpriteRenderer sprite,face,glow,fallTrail;
-        Vector3 fruitScale,faceScale;
+        SpriteRenderer sprite,glow,fallTrail;
+        Vector3 fruitScale;
         MeshRenderer nameTag;
         public void Initialise(DateRushGame owner,int variety,Vector2 position)
         {
             game=owner;Variety=variety;Position=position;transform.position=DateRushArt.World(position);
             glow=DateRushArt.Sprite("Target glow",DateRushArt.Shape("ring"),position,new Vector2(66,55),25,transform,DateRushArt.Gold);
             sprite=game.CreateDateSprite("Date fruit",variety,position,new Vector2(53,39),26,transform);
-            face=DateRushArt.Sprite("Date face",DateRushArt.Shape("date smile"),position,DateRushArt.DateFaceSize,27,transform);
             fruitScale=sprite.transform.localScale;
-            faceScale=face.transform.localScale;
             fallTrail=DateRushArt.Sprite("White wind trail",DateRushArt.Shape("fall trail"),position,new Vector2(46,1),23,transform,new Color(1,1,1,0));
             var tag=new GameObject("Falling date name",typeof(TextMesh));tag.transform.SetParent(transform,false);
             var label=tag.GetComponent<TextMesh>();label.text=DateCatalog.All[variety].name;label.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");label.fontSize=48;label.characterSize=.034f;label.anchor=TextAnchor.UpperCenter;label.color=DateRushArt.Cream;
@@ -46,7 +44,6 @@ namespace DateRush
             }
             MoveVisuals(previous);
             RotateFruit(rotation);
-            face.transform.localScale=faceScale*(1+.055f*Mathf.Sin(rotation*.16f));
             UpdateFallTrail();
             glow.color=new Color(1,.76f,.35f,.55f+Mathf.Sin(Time.time*8)*.2f);
         }
@@ -72,7 +69,6 @@ namespace DateRush
             landed=true;
             game.MissDate(Variety,Position);
             fallTrail.enabled=false;
-            DateRushArt.SetSprite(face,DateRushArt.Shape("date angry"),DateRushArt.DateFaceSize);
             AnimateGroundReaction(0);
         }
         void AnimateGroundReaction(float dt)
@@ -83,13 +79,12 @@ namespace DateRush
             float impact=Mathf.Exp(-9*groundAge);
             var squash=new Vector3(1+.18f*impact,1-.29f*impact,1);
             sprite.transform.localScale=Vector3.Scale(fruitScale,squash);
-            face.transform.localScale=Vector3.Scale(faceScale,squash);
             RotateFruit(Mathf.Sin(groundAge*34)*11*impact);
         }
         void RotateFruit(float degrees)
         {
             var pose=Quaternion.Euler(0,0,degrees);
-            sprite.transform.localRotation=face.transform.localRotation=pose;
+            sprite.transform.localRotation=pose;
         }
         void MoveVisuals(Vector2 previous)
         {

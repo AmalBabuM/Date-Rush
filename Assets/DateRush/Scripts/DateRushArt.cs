@@ -69,6 +69,11 @@ namespace DateRush
                     pixels[y*w+x]=SnakeHeadPixel(nx,ny);
                     continue;
                 }
+                else if(name=="hay bale")
+                {
+                    pixels[y*w+x]=HayBalePixel(nx,ny);
+                    continue;
+                }
                 else if(name=="dash arcs")
                 {
                     float ring=Mathf.Sqrt(nx*nx+ny*ny);
@@ -154,7 +159,7 @@ namespace DateRush
             float snout=(x+.37f)*(x+.37f)/.37f+(y+.12f)*(y+.12f)/.31f;
             float cheek=(x-.13f)*(x-.13f)/.65f+y*y/.54f;
             float edge=Mathf.Min(snout,cheek);
-            Color dark=new Color32(25,47,25,255);
+            Color dark=new Color32(60,38,23,255);
             if(edge>=.90f)
             {
                 dark.a=Mathf.Clamp01((1-edge)*32);
@@ -165,14 +170,30 @@ namespace DateRush
             {
                 if(InOval(x+.247f,y-.34f,.043f,.048f))return Color.white;
                 if(InOval(x+.20f,y-.23f,.078f,.22f))return dark;
-                return InOval(x+.13f,y-.22f,.25f,.26f)?new Color32(251,204,86,255):dark;
+                return InOval(x+.13f,y-.22f,.25f,.26f)?new Color32(238,190,107,255):dark;
             }
             if(InOval(x+.73f,y+.075f,.065f,.048f))return dark;
 
             float mouth=-.27f+.13f*Mathf.Sin((x+.85f)*3f);
             if(x<.22f && Mathf.Abs(y-mouth)<.037f)return dark;
-            if(y<mouth)return Color.Lerp(new Color32(114,138,54,255),new Color32(188,175,85,255),Mathf.InverseLerp(-.67f,-.24f,y));
-            return Color.Lerp(new Color32(48,99,43,255),new Color32(133,171,65,255),Mathf.InverseLerp(-.22f,.71f,y));
+            if(y<mouth)return Color.Lerp(new Color32(120,77,47,255),new Color32(222,185,132,255),Mathf.InverseLerp(-.67f,-.24f,y));
+            return Color.Lerp(new Color32(145,98,57,255),new Color32(220,180,111,255),Mathf.InverseLerp(-.22f,.71f,y));
+        }
+        static Color HayBalePixel(float x,float y)
+        {
+            float r=Mathf.Sqrt(x*x+y*y);
+            float angle=Mathf.Atan2(y,x);
+            if(r>.92f)return Color.clear;
+            float rollLine=Mathf.Abs(Mathf.Sin((r*31f+angle*.16f)*Mathf.PI));
+            float straw=Mathf.Sin(x*63f+y*17f)*.08f+Mathf.Sin(y*71f-x*11f)*.06f;
+            Color hay=Color.Lerp(new Color32(166,105,38,255),new Color32(247,202,91,255),.54f+.24f*Mathf.Sin(r*25f+angle*2f)+straw);
+            hay=Color.Lerp(hay,new Color32(125,77,31,255),Mathf.Clamp01(rollLine*.28f+r*.18f));
+            if(r>.79f)hay=Color.Lerp(hay,new Color32(119,73,30,255),Mathf.InverseLerp(.79f,.93f,r));
+            // Two dark jute ropes wrap around the bale and remain visible as it rolls.
+            float rope= Mathf.Abs(Mathf.Sin(angle*2f+Mathf.Sin(r*8f)*.18f));
+            if(rope<.055f && r<.84f)hay=Color.Lerp(new Color32(104,66,35,255),new Color32(222,176,93,255),rope/.055f);
+            if(r>.84f && r<.91f)hay=Color.Lerp(hay,new Color32(232,180,76,255),.45f);
+            return hay;
         }
         public static SpriteRenderer Sprite(string name,Sprite sprite,Vector2 position,Vector2 size,int order,Transform parent,Color? tint=null)
         {

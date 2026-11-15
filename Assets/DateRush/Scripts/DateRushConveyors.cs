@@ -42,7 +42,6 @@ namespace DateRush
                 Vector2 position=Path(progress);
                 root.position=DateRushArt.World(position);
                 var fruit=game.CreateDateSprite("Date fruit",variety,position,DateSize,8,root);
-                DateRushArt.Sprite("Date face",DateRushArt.Shape("date calm"),position,DateRushArt.DateFaceSize,9,root);
                 var tag=new GameObject("Target date tag",typeof(TextMesh));tag.transform.SetParent(root,false);tag.transform.localPosition=new Vector3(0,.38f,0);
                 DateRushArt.Sprite("Tag background",DateRushArt.Shape("rounded"),position+new Vector2(0,-38),new Vector2(86,25),11,tag.transform,DateRushArt.Cream);
                 var text=tag.GetComponent<TextMesh>();text.text=DateCatalog.All[variety].name;text.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");text.fontSize=48;text.characterSize=.04f;text.anchor=TextAnchor.MiddleCenter;text.color=DateRushArt.Ink;
