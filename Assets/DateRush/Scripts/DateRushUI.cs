@@ -16,7 +16,8 @@ namespace DateRush
         RectTransform root,hud,modal,effects;
         Text notice,soundLabel;
         Text waveCountdownLabel;
-        Image noticeFrame;
+        Text targetDateLabel;
+        Image noticeFrame,targetDateIcon,targetDateFrame,targetDateBackground;
         Font bodyFont,titleFont;
         float noticeLife;
         bool showingAboutDates;
@@ -88,11 +89,19 @@ namespace DateRush
                 Image("Left pause bar",pause.transform,19,18,6,20,DateRushArt.Cream);
                 Image("Right pause bar",pause.transform,31,18,6,20,DateRushArt.Cream);
             }
-            noticeFrame=Image("Notice rounded white outline",hud,500,490,600,46,Color.white,DateRushArt.Shape("rounded border"));
+            noticeFrame=Image("Notice rounded white outline",hud,590,493,420,38,Color.white,DateRushArt.Shape("rounded border"));
             noticeFrame.type=UnityEngine.UI.Image.Type.Sliced;
             noticeFrame.enabled=false;
-            notice=Text("Target change announcement",hud,510,491,580,43,"",21,Color.white,true,TextAnchor.MiddleCenter);
+            notice=Text("Target change announcement",hud,598,494,404,36,"",18,Color.white,true,TextAnchor.MiddleCenter);
             var outline=notice.gameObject.AddComponent<Outline>();outline.effectColor=new Color(.15f,.06f,.02f,.9f);outline.effectDistance=new Vector2(2,-2)*TextSampleScale;
+            targetDateFrame=Image("Target date white outline",hud,24,818,220,58,Color.white,DateRushArt.Shape("rounded border"));
+            targetDateFrame.type=UnityEngine.UI.Image.Type.Sliced;
+            targetDateBackground=Image("Target date background",hud,27,821,214,52,new Color(0,0,0,.72f));
+            targetDateIcon=Image("Target date fruit",hud,34,825,62,44,Color.white,game.GetDateSprite(game.Target));
+            targetDateIcon.preserveAspect=true;
+            Text("Target date kicker",hud,104,822,128,17,"CATCH THIS DATE",12,DateRushArt.Gold,true,TextAnchor.MiddleLeft);
+            targetDateLabel=Text("Target date name",hud,104,838,128,27,DateCatalog.All[game.Target].name.ToUpper(),19,Color.white,true,TextAnchor.MiddleLeft);
+            RefreshTargetDate();
         }
         void ClearModal()
         {
@@ -106,7 +115,18 @@ namespace DateRush
             var shade=Image("Dim market",modal,0,0,1600,900,new Color(.07f,.03f,.01f,.73f));shade.raycastTarget=true;
             return Panel(name,modal,x,y,w,h);
         }
-        public void ShowHud(){wavePause=false;waveCountdown=0;waveCountdownLabel=null;ClearModal();modal.gameObject.SetActive(false);hud.gameObject.SetActive(true);}
+        public void ShowHud()
+        {
+            wavePause=false;waveCountdown=0;waveCountdownLabel=null;noticeLife=0;
+            notice.enabled=false;noticeFrame.enabled=false;RefreshTargetDate();
+            ClearModal();modal.gameObject.SetActive(false);hud.gameObject.SetActive(true);
+        }
+        void RefreshTargetDate()
+        {
+            if(!targetDateIcon||!targetDateLabel)return;
+            targetDateIcon.sprite=game.GetDateSprite(game.Target);
+            targetDateLabel.text=DateCatalog.All[game.Target].name.ToUpper();
+        }
         public void ShowMenu()
         {
             aboutDatesFromMenu=false;
@@ -245,7 +265,13 @@ namespace DateRush
         }
         public void Notice(string text,Color color)
         {
-            notice.text=text;notice.color=Color.white;noticeLife=2.7f;
+            notice.text=text;notice.color=Color.white;noticeLife=2.7f;notice.enabled=true;
+            float width=Mathf.Clamp(text.Length*(notice.fontSize/(float)TextSampleScale)*.55f+34,150,420);
+            float left=(1600-width)*.5f;
+            noticeFrame.rectTransform.anchoredPosition=new Vector2(left,-493);
+            noticeFrame.rectTransform.sizeDelta=new Vector2(width,38);
+            notice.rectTransform.anchoredPosition=new Vector2(left+8,-494);
+            notice.rectTransform.sizeDelta=new Vector2((width-16)*TextSampleScale,36*TextSampleScale);
             noticeFrame.enabled=true;
         }
         public void FloatText(Vector2 at,string content,Color color)

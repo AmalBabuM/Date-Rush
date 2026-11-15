@@ -90,12 +90,13 @@ namespace DateRush
                 {float d=Mathf.Sqrt(nx*nx+ny*ny);alpha=Mathf.Clamp01((1-d)*45);if(name=="ring")alpha*=Mathf.Clamp01((d-.65f)*45);}
                 else if(name=="rounded" || name=="rounded border")
                 {
-                    float outerX=Mathf.Max(Mathf.Abs(nx)-.82f,0),outerY=Mathf.Max(Mathf.Abs(ny)-.82f,0);
-                    float outer=Mathf.Clamp01((.18f-Mathf.Sqrt(outerX*outerX+outerY*outerY))*60);
+                    float outerX=Mathf.Max(Mathf.Abs(nx)-.72f,0),outerY=Mathf.Max(Mathf.Abs(ny)-.72f,0);
+                    float cornerRadius=.28f;
+                    float outer=Mathf.Clamp01((cornerRadius-Mathf.Sqrt(outerX*outerX+outerY*outerY))*60);
                     if(name=="rounded border")
                     {
-                        float innerX=Mathf.Max(Mathf.Abs(nx)-.74f,0),innerY=Mathf.Max(Mathf.Abs(ny)-.74f,0);
-                        float inner=Mathf.Clamp01((.18f-Mathf.Sqrt(innerX*innerX+innerY*innerY))*60);
+                        float innerX=Mathf.Max(Mathf.Abs(nx)-.695f,0),innerY=Mathf.Max(Mathf.Abs(ny)-.695f,0);
+                        float inner=Mathf.Clamp01((cornerRadius-Mathf.Sqrt(innerX*innerX+innerY*innerY))*60);
                         alpha=outer*(1-inner);
                     }
                     else alpha=outer;
@@ -133,7 +134,7 @@ namespace DateRush
                 pixels[y*w+x]=new Color(1,1,1,alpha);
             }
             t.SetPixels(pixels);t.Apply();owned.Add(t);
-            var border=beltShape?new Vector4(radius,0,radius,0):name=="rounded border"?new Vector4(6,6,6,6):new Vector4(12,12,12,12);
+            var border=beltShape?new Vector4(radius,0,radius,0):name=="rounded border"?new Vector4(20,20,20,20):new Vector4(12,12,12,12);
             result=UnityEngine.Sprite.Create(t,new Rect(0,0,w,h),new Vector2(.5f,.5f),100,0,SpriteMeshType.FullRect,border);
             cache[name]=result;owned.Add(result);return result;
         }

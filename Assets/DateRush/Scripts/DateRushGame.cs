@@ -174,7 +174,6 @@ namespace DateRush
         {
             if(State!=RoundState.Briefing)return;
             State=RoundState.Playing;UI.ShowHud();
-            UI.Notice("CATCH "+DateCatalog.All[Target].name.ToUpper()+" DATES",DateRushArt.Gold);
         }
         public void SpawnDrop(int variety,Vector2 position)
         {
