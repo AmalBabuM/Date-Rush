@@ -57,6 +57,7 @@ namespace DateRush
         public float Remaining {get;private set;}
         public float Elapsed {get;private set;}
         public bool Muted {get;private set;}
+        public bool MusicEnabled {get;private set;}
         public bool Won {get;private set;}
         public DateRushPlayer Player {get;private set;}
         public DateRushConveyors Conveyors {get;private set;}
@@ -66,7 +67,8 @@ namespace DateRush
         internal Sprite SharedBackgroundSprite=>background?background:DateRushArt.Load("Market");
         public readonly List<DateRushDrop> Drops=new List<DateRushDrop>();
         AudioSource audioSource;
-        AudioClip good,bad,victory;
+        AudioSource musicSource;
+        AudioClip correctSound,wrongSound;
         Transform world,backdrop;
         float nextDrop,nextSnake;
         DateRushSnake snake;
@@ -83,6 +85,7 @@ namespace DateRush
             Application.targetFrameRate=60;
             Best=PlayerPrefs.GetInt("DateRush.Best",0);
             Muted=PlayerPrefs.GetInt("DateRush.Muted",0)==1;
+            MusicEnabled=PlayerPrefs.GetInt("DateRush.MusicEnabled",1)==1;
             for(int i=0;i<6;i++)Discoveries[i]=PlayerPrefs.GetInt("DateRush.Discovery."+i,0);
             GameCamera=Camera.main;
             if(GameCamera==null)
@@ -102,7 +105,11 @@ namespace DateRush
             Player.transform.SetParent(world);Player.Initialise(this);
             UI=new GameObject("Date Rush - UI").AddComponent<DateRushUI>();UI.Initialise(this);
             audioSource=gameObject.AddComponent<AudioSource>();
-            good=Tone(670,.14f);bad=Tone(150,.2f);victory=Tone(880,.45f);
+            audioSource.playOnAwake=false;audioSource.spatialBlend=0;
+            musicSource=gameObject.AddComponent<AudioSource>();
+            musicSource.clip=Resources.Load<AudioClip>("Background");musicSource.loop=true;musicSource.volume=.22f;musicSource.playOnAwake=false;musicSource.spatialBlend=0;
+            correctSound=Resources.Load<AudioClip>("Correct");wrongSound=Resources.Load<AudioClip>("Wrong");
+            EnsureMusicPlaying();
             Remaining=roundSeconds;UI.ShowMenu();
         }
         Sprite DateOverride(int variety)
@@ -191,7 +198,7 @@ namespace DateRush
             bool match=drop.Variety==Target;Combo=match?Combo+1:0;
             int points=CatchRules.Points(match,Combo);Score=Mathf.Max(0,Score+points);
             UI.FloatText(Player.BasketPosition+new Vector2(0,-65),match?"+"+points+(Combo>1?"  x"+Combo:"  PERFECT!"):"-25  WRONG VARIETY",match?DateRushArt.Mint:DateRushArt.Coral);
-            Player.CatchFeedback(match);Play(match?good:bad);
+            Player.CatchFeedback(match);Play(match?correctSound:wrongSound);
             if(!match){UI.Notice("Look for "+DateCatalog.All[Target].name+" dates",DateRushArt.Coral);return;}
             Caught++;Discoveries[Target]++;PlayerPrefs.SetInt("DateRush.Discovery."+Target,Discoveries[Target]);
             if(Caught>=harvestGoal){Finish(true);return;}
@@ -205,17 +212,28 @@ namespace DateRush
         public void MissDate(int variety,Vector2 at)
         {if(variety!=Target)return;Missed++;Combo=0;UI.FloatText(at+new Vector2(0,-45),"MISSED",DateRushArt.Cream);}
         internal void HitSnake()
-        {Combo=0;Score=Mathf.Max(0,Score-50);Play(bad);UI.FloatText(Player.BasketPosition+new Vector2(0,-70),"-50  HAY BALE HIT!",DateRushArt.Coral);}
-        public void Pause(){if(State!=RoundState.Playing)return;State=RoundState.Paused;UI.ShowPause();}
+        {Combo=0;Score=Mathf.Max(0,Score-50);Play(wrongSound);UI.FloatText(Player.BasketPosition+new Vector2(0,-70),"-50  HAY BALE HIT!",DateRushArt.Coral);}
+        public void Pause(){if(State!=RoundState.Playing)return;EnsureMusicPlaying();State=RoundState.Paused;UI.ShowPause();}
         public void Resume(){if(State!=RoundState.Paused)return;State=RoundState.Playing;UI.ShowHud();}
         public void Menu(){State=RoundState.Menu;ClearRoundObjects();UI.ShowMenu();}
         public void Collection(){State=RoundState.Collection;ClearRoundObjects();UI.ShowCollection();}
         public void ToggleSound(){Muted=!Muted;PlayerPrefs.SetInt("DateRush.Muted",Muted?1:0);PlayerPrefs.Save();UI.RefreshSound();}
+        public void ToggleMusic()
+        {
+            MusicEnabled=!MusicEnabled;
+            PlayerPrefs.SetInt("DateRush.MusicEnabled",MusicEnabled?1:0);PlayerPrefs.Save();
+            if(MusicEnabled)EnsureMusicPlaying();else if(musicSource)musicSource.Stop();
+            UI.RefreshMusic();
+        }
+        internal void EnsureMusicPlaying()
+        {
+            if(MusicEnabled && musicSource && musicSource.clip && !musicSource.isPlaying)musicSource.Play();
+        }
         public void Finish(bool success)
         {
             Won=success;State=RoundState.Results;
             if(Score>Best){Best=Score;PlayerPrefs.SetInt("DateRush.Best",Best);}
-            PlayerPrefs.Save();if(success)Play(victory);UI.ShowResults();
+            PlayerPrefs.Save();if(success)Play(correctSound,.7f);UI.ShowResults();
         }
         void ClearRoundObjects()
         {
@@ -224,15 +242,9 @@ namespace DateRush
             if(snake)Destroy(snake.gameObject);
             snake=null;
         }
-        void Play(AudioClip clip){if(!Muted)audioSource.PlayOneShot(clip,.4f);}
+        void Play(AudioClip clip,float volume=.4f){if(!Muted && clip)audioSource.PlayOneShot(clip,volume);}
         void OnApplicationFocus(bool focus){if(!focus)Pause();}
-        void OnDestroy(){Destroy(good);Destroy(bad);Destroy(victory);DateRushArt.Release();}
-        static AudioClip Tone(float frequency,float length)
-        {
-            int n=(int)(44100*length);var samples=new float[n];
-            for(int i=0;i<n;i++){float t=i/44100f;samples[i]=Mathf.Sin(2*Mathf.PI*(frequency*t+frequency*.35f*t*t))*Mathf.Sin(Mathf.PI*i/n)*.24f;}
-            var clip=AudioClip.Create("Date Rush chime",n,1,44100,false);clip.SetData(samples,0);return clip;
-        }
+        void OnDestroy(){DateRushArt.Release();}
     }
 }
 

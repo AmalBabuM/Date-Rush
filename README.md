@@ -19,6 +19,8 @@ The Windows executable is produced at `Builds/Windows/Date Rush.exe` by **Date R
 
 Select **Date Rush - Game Controller** in Unity to adjust **Dates Per Wave**, **Belt Speed**, **Upper Belt Drop Chance**, and **Release Edge Margin** under **Conveyor settings**. Dates Per Wave takes effect the next time you enter Play mode. **First Drop Delay** and **Drop Interval** are under **Round settings**.
 
+Toggle background music directly from the main menu or pause screen. Music and sound effects have separate saved settings, and the music plays in the menu as well as during gameplay.
+
 Under **Custom artwork**, assign a sprite to **Pause Button Sprite** to use your own top-left pause icon.
 
 Adjust **Snake Speed** under **Snake settings**. Jump over the snake's head to avoid a 50-point penalty.
@@ -40,7 +42,7 @@ This is an original date-themed implementation of the visible reference mechanic
 
 ## Unity structure
 
-- `DateRushGame.cs`: round state, spawning, scoring, targets, persistence and generated sound.
+- `DateRushGame.cs`: round state, spawning, scoring, targets, persistence, and audio playback.
 - `DateRushConveyors.cs` builds the four rounded conveyor sections, rotates the gears, and moves and releases individually labelled dates.
 - `DateRushPlayer.cs` handles movement, jumping, sprinting, and catching dates with the plate.
 - `DateRushSnake.cs` animates and moves the snake along the floor.
@@ -52,6 +54,8 @@ This is an original date-themed implementation of the visible reference mechanic
 - `Editor/DateRushVerification.cs`: repeatable gameplay and collision checks.
 
 The scene stores the camera and configurable game controller. On Play, the controller constructs the market, conveyors, player and native UI as inspectable Unity objects in the Hierarchy. No manual component linking is necessary. Runtime movement uses deterministic, script-driven 2D motion. The plate uses swept collision to catch dates while jumping and at high fall speeds.
+
+`Assets/DateRush/Resources/Background.mp3` provides the looping market soundtrack. `Correct.mp3` plays for successful catches and wins; `Wrong.mp3` plays for incorrect catches and hay-bale collisions.
 
 The original `SampleScene.unity` is preserved. The dedicated DateRush scene is the build entry point. The project retains the existing URP and Input System packages. Assets and materials work in the 2D renderer without additional lighting setup.
 

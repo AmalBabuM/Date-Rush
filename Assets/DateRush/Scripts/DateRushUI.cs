@@ -15,6 +15,7 @@ namespace DateRush
         float textCanvasScale;
         RectTransform root,hud,modal,effects;
         Text notice,soundLabel;
+        Text musicLabel;
         Text waveCountdownLabel;
         Text targetDateLabel;
         Image noticeFrame,targetDateIcon,targetDateFrame,targetDateBackground;
@@ -76,7 +77,7 @@ namespace DateRush
             colors.highlightedColor=new Color(1,1,.87f);colors.pressedColor=new Color(.76f,.68f,.55f);button.colors=colors;
             if(!string.IsNullOrEmpty(content))
                 Text("Label",img.transform,8,0,w-16,h,content,fontSize,primary?DateRushArt.Ink:DateRushArt.Cream,true,TextAnchor.MiddleCenter);
-            button.onClick.AddListener(()=>action());return button;
+            button.onClick.AddListener(()=>{game.EnsureMusicPlaying();action();});return button;
         }
         void BuildHud()
         {
@@ -135,6 +136,8 @@ namespace DateRush
             Button("Start game",modal,560,345,480,72,"START GAME",game.BeginRound,true,25);
             Button("Game settings",modal,560,440,480,72,"GAME SETTINGS",ShowSettings,fontSize:23);
             Button("All dates info",modal,560,535,480,72,"ALL DATES INFO",ShowAllDates,fontSize:23);
+            var music=Button("Menu music setting",modal,560,630,480,62,game.MusicEnabled?"MUSIC: ON":"MUSIC: OFF",game.ToggleMusic,fontSize:22);
+            musicLabel=music.GetComponentInChildren<Text>();
         }
         void PrepareFullScreenMenu()
         {
@@ -149,9 +152,11 @@ namespace DateRush
             Text("Title",modal,300,145,1000,80,"GAME SETTINGS",48,DateRushArt.Cream,true,TextAnchor.MiddleCenter,true);
             Text("How to play",modal,360,252,880,135,"Catch the date shown in your briefing. Every 3 correct catches starts a new wave and reveals a new date. Pause during a wave to review its date information.",23,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
             Text("Controls",modal,360,400,880,125,"MOVE   A / D or Left / Right Arrow\nJUMP   Space, W, or Up Arrow\nDASH   Shift",23,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
-            var sound=Button("Sound setting",modal,600,555,400,58,game.Muted?"SOUND: OFF":"SOUND: ON",game.ToggleSound,true,21);
+            var sound=Button("Sound effects setting",modal,600,535,400,54,game.Muted?"SOUND EFFECTS: OFF":"SOUND EFFECTS: ON",game.ToggleSound,true,19);
             soundLabel=sound.GetComponentInChildren<Text>();
-            Button("Back to menu",modal,600,635,400,58,"BACK TO MENU",ShowMenu,fontSize:21);
+            var music=Button("Music setting",modal,600,598,400,54,game.MusicEnabled?"MUSIC: ON":"MUSIC: OFF",game.ToggleMusic,true,19);
+            musicLabel=music.GetComponentInChildren<Text>();
+            Button("Back to menu",modal,600,661,400,54,"BACK TO MENU",ShowMenu,fontSize:21);
         }
         void ShowAllDates()
         {
@@ -172,8 +177,10 @@ namespace DateRush
                 Image("Current target date",p,267,114,146,100,Color.white,game.GetDateSprite(game.Target)).preserveAspect=true;
                 Text("Target name",p,45,224,590,43,target.name,30,DateRushArt.Gold,true,TextAnchor.MiddleCenter);
                 Text("Target fact",p,68,275,544,95,target.description,20,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
-                Text("Countdown label",p,50,383,580,24,"CONTINUING IN",15,DateRushArt.Gold,true,TextAnchor.MiddleCenter);
-                waveCountdownLabel=Text("Automatic wave countdown",p,50,407,580,57,"3",43,DateRushArt.Cream,true,TextAnchor.MiddleCenter);
+                Text("Countdown label",p,50,367,580,24,"CONTINUING IN",15,DateRushArt.Gold,true,TextAnchor.MiddleCenter);
+                waveCountdownLabel=Text("Automatic wave countdown",p,50,390,580,51,"3",39,DateRushArt.Cream,true,TextAnchor.MiddleCenter);
+                var waveMusic=Button("Wave pause music setting",p,184,444,312,42,game.MusicEnabled?"MUSIC: ON":"MUSIC: OFF",game.ToggleMusic,fontSize:17);
+                musicLabel=waveMusic.GetComponentInChildren<Text>();
                 return;
             }
             waveCountdownLabel=null;
@@ -183,10 +190,12 @@ namespace DateRush
             Text("Target name",p,45,230,590,43,target.name,30,DateRushArt.Cream,true,TextAnchor.MiddleCenter);
             Text("Target fact",p,68,276,544,75,target.description,19,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
             Text("Pause controls",p,50,353,580,28,"MOVE A / D or ← →   •   JUMP Space   •   DASH Shift",16,DateRushArt.Gold,false,TextAnchor.MiddleCenter);
-            Button("Resume",p,94,400,492,58,"RESUME GAME  >",game.Resume,true,22);
-            Button("About Dates",p,94,472,492,45,"ABOUT ALL DATES",ShowAboutDates);
-            Button("Restart",p,94,529,235,45,"RESTART",game.BeginRound);
-            Button("Main menu",p,351,529,235,45,"MAIN MENU",game.Menu);
+            Button("Resume",p,94,391,492,54,"RESUME GAME  >",game.Resume,true,22);
+            Button("About Dates",p,94,458,492,42,"ABOUT ALL DATES",ShowAboutDates);
+            Button("Restart",p,94,511,235,42,"RESTART",game.BeginRound);
+            Button("Main menu",p,351,511,235,42,"MAIN MENU",game.Menu);
+            var pauseMusic=Button("Pause music setting",p,184,565,312,40,game.MusicEnabled?"MUSIC: ON":"MUSIC: OFF",game.ToggleMusic,fontSize:17);
+            musicLabel=pauseMusic.GetComponentInChildren<Text>();
         }
         public void ShowTargetBriefing()
         {
@@ -261,7 +270,11 @@ namespace DateRush
         }
         public void RefreshSound()
         {
-            if(soundLabel)soundLabel.text=game.Muted?"SOUND OFF":"SOUND ON";
+            if(soundLabel)soundLabel.text=game.Muted?"SOUND EFFECTS: OFF":"SOUND EFFECTS: ON";
+        }
+        public void RefreshMusic()
+        {
+            if(musicLabel)musicLabel.text=game.MusicEnabled?"MUSIC: ON":"MUSIC: OFF";
         }
         public void Notice(string text,Color color)
         {
