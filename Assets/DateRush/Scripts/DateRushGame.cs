@@ -139,7 +139,7 @@ namespace DateRush
         {
             FitCamera();
             if(Keyboard.current!=null && (Keyboard.current.pKey.wasPressedThisFrame || Keyboard.current.escapeKey.wasPressedThisFrame))
-            {if(State==RoundState.Playing)Pause();else if(State==RoundState.Paused && !UI.TryCloseAboutDates())Resume();}
+            {if(State==RoundState.Playing)Pause();else if(State==RoundState.Paused && !UI.TryCloseAboutDates() && !UI.IsWaveTransition)Resume();}
             if(State!=RoundState.Playing)return;
             float dt=Time.deltaTime;Elapsed+=dt;Remaining=Mathf.Max(0,Remaining-dt);
             nextDrop-=dt;nextSnake-=dt;
@@ -197,7 +197,11 @@ namespace DateRush
             Caught++;Discoveries[Target]++;PlayerPrefs.SetInt("DateRush.Discovery."+Target,Discoveries[Target]);
             if(Caught>=harvestGoal){Finish(true);return;}
             if(Caught%3==0)
-            {Target=(Target+1)%6;Player.ShowTargetDates(Target);UI.Notice("WAVE "+(Caught/3+1)+" - CATCH "+DateCatalog.All[Target].name.ToUpper(),DateRushArt.Gold);}
+            {
+                Target=(Target+1)%6;Player.ShowTargetDates(Target);
+                State=RoundState.Paused;
+                UI.ShowWavePause();
+            }
         }
         public void MissDate(int variety,Vector2 at)
         {if(variety!=Target)return;Missed++;Combo=0;UI.FloatText(at+new Vector2(0,-45),"MISSED",DateRushArt.Cream);}

@@ -15,9 +15,15 @@ namespace DateRush
         float textCanvasScale;
         RectTransform root,hud,modal,effects;
         Text notice,soundLabel;
+        Text waveCountdownLabel;
+        Image noticeFrame,noticeBackground;
         Font bodyFont,titleFont;
         float noticeLife;
         bool showingAboutDates;
+        bool aboutDatesFromMenu;
+        bool wavePause;
+        float waveCountdown;
+        internal bool IsWaveTransition=>wavePause;
         readonly List<Floating> floating=new List<Floating>();
         public void Initialise(DateRushGame owner)
         {
@@ -82,7 +88,10 @@ namespace DateRush
                 Image("Left pause bar",pause.transform,19,18,6,20,DateRushArt.Cream);
                 Image("Right pause bar",pause.transform,31,18,6,20,DateRushArt.Cream);
             }
-            notice=Text("Target change announcement",hud,360,523,880,49,"",26,DateRushArt.Cream,true,TextAnchor.MiddleCenter);
+            noticeFrame=Image("Notice rounded border",hud,500,490,600,46,Color.white);
+            noticeBackground=Image("Notice black background",hud,503,493,594,40,Color.black);
+            noticeFrame.enabled=noticeBackground.enabled=false;
+            notice=Text("Target change announcement",hud,510,491,580,43,"",21,Color.white,true,TextAnchor.MiddleCenter);
             var outline=notice.gameObject.AddComponent<Outline>();outline.effectColor=new Color(.15f,.06f,.02f,.9f);outline.effectDistance=new Vector2(2,-2)*TextSampleScale;
         }
         void ClearModal()
@@ -97,14 +106,15 @@ namespace DateRush
             var shade=Image("Dim market",modal,0,0,1600,900,new Color(.07f,.03f,.01f,.73f));shade.raycastTarget=true;
             return Panel(name,modal,x,y,w,h);
         }
-        public void ShowHud(){ClearModal();modal.gameObject.SetActive(false);hud.gameObject.SetActive(true);}
+        public void ShowHud(){wavePause=false;waveCountdown=0;waveCountdownLabel=null;ClearModal();modal.gameObject.SetActive(false);hud.gameObject.SetActive(true);}
         public void ShowMenu()
         {
+            aboutDatesFromMenu=false;
             PrepareFullScreenMenu();
             Text("Title",modal,400,175,800,110,"DATE RUSH",76,DateRushArt.Cream,true,TextAnchor.MiddleCenter,true);
             Button("Start game",modal,560,345,480,72,"START GAME",game.BeginRound,true,25);
-            Button("Instructions",modal,560,440,480,72,"INSTRUCTIONS",ShowInstructions,fontSize:23);
-            Button("Controls",modal,560,535,480,72,"CONTROLS",ShowControls,fontSize:23);
+            Button("Game settings",modal,560,440,480,72,"GAME SETTINGS",ShowSettings,fontSize:23);
+            Button("All dates info",modal,560,535,480,72,"ALL DATES INFO",ShowAllDates,fontSize:23);
         }
         void PrepareFullScreenMenu()
         {
@@ -112,24 +122,40 @@ namespace DateRush
             Image("Menu background image",modal,0,0,1600,900,Color.white,game.SharedBackgroundSprite);
             var shade=Image("Menu background shade",modal,0,0,1600,900,new Color(.07f,.03f,.01f,.2f));shade.raycastTarget=true;
         }
-        void ShowInstructions()
+        void ShowSettings()
         {
             PrepareFullScreenMenu();
-            Text("Title",modal,300,180,1000,80,"HOW TO PLAY",48,DateRushArt.Cream,true,TextAnchor.MiddleCenter,true);
-            Text("Instructions",modal,360,300,880,230,"Catch the date variety shown in your briefing.\n\nEvery 3 correct catches starts a new wave with a different date. Pause at any time to see the current date and its details.\n\nCatch the required number before the timer runs out. Matching dates earn points; wrong dates lose points.",25,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
-            Button("Back to menu",modal,600,625,400,64,"BACK TO MENU",ShowMenu,true,22);
+            Text("Title",modal,300,145,1000,80,"GAME SETTINGS",48,DateRushArt.Cream,true,TextAnchor.MiddleCenter,true);
+            Text("How to play",modal,360,252,880,135,"Catch the date shown in your briefing. Every 3 correct catches starts a new wave and reveals a new date. Pause during a wave to review its date information.",23,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
+            Text("Controls",modal,360,400,880,125,"MOVE   A / D or Left / Right Arrow\nJUMP   Space, W, or Up Arrow\nDASH   Shift",23,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
+            var sound=Button("Sound setting",modal,600,555,400,58,game.Muted?"SOUND: OFF":"SOUND: ON",game.ToggleSound,true,21);
+            soundLabel=sound.GetComponentInChildren<Text>();
+            Button("Back to menu",modal,600,635,400,58,"BACK TO MENU",ShowMenu,fontSize:21);
         }
-        void ShowControls()
+        void ShowAllDates()
         {
-            PrepareFullScreenMenu();
-            Text("Title",modal,300,190,1000,80,"GAME CONTROLS",48,DateRushArt.Cream,true,TextAnchor.MiddleCenter,true);
-            Text("Controls",modal,360,320,880,200,"MOVE   A / D or Left / Right Arrow\n\nJUMP   Space, W, or Up Arrow\n\nDASH   Shift",27,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
-            Button("Back to menu",modal,600,625,400,64,"BACK TO MENU",ShowMenu,true,22);
+            aboutDatesFromMenu=true;
+            ShowAboutDates();
         }
-        public void ShowPause()
+        public void ShowPause()=>ShowPause(false);
+        public void ShowWavePause()=>ShowPause(true);
+        void ShowPause(bool waveChange)
         {
-            var p=ModalPanel("Paused",460,146,680,610);
+            wavePause=waveChange;
+            waveCountdown=waveChange?5f:0f;
+            var p=ModalPanel(waveChange?"Next wave":"Paused",460,waveChange?210:146,680,waveChange?480:610);
             var target=DateCatalog.All[game.Target];
+            if(waveChange)
+            {
+                Text("Title",p,40,32,600,57,"WAVE "+(game.Caught/3+1),38,DateRushArt.Cream,true,TextAnchor.MiddleCenter,true);
+                Image("Current target date",p,267,114,146,100,Color.white,game.GetDateSprite(game.Target)).preserveAspect=true;
+                Text("Target name",p,45,224,590,43,target.name,30,DateRushArt.Gold,true,TextAnchor.MiddleCenter);
+                Text("Target fact",p,68,275,544,95,target.description,20,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
+                Text("Countdown label",p,50,383,580,24,"CONTINUING IN",15,DateRushArt.Gold,true,TextAnchor.MiddleCenter);
+                waveCountdownLabel=Text("Automatic wave countdown",p,50,407,580,57,"3",43,DateRushArt.Cream,true,TextAnchor.MiddleCenter);
+                return;
+            }
+            waveCountdownLabel=null;
             Text("Title",p,40,26,600,57,"Game paused",38,DateRushArt.Cream,true,TextAnchor.MiddleCenter,true);
             Image("Current target date",p,267,96,146,100,Color.white,game.GetDateSprite(game.Target)).preserveAspect=true;
             Text("Wave",p,50,202,580,27,"WAVE "+(game.Caught/3+1)+"  •  CATCH THIS DATE",16,DateRushArt.Gold,true,TextAnchor.MiddleCenter);
@@ -157,6 +183,7 @@ namespace DateRush
         }
         void ShowAboutDates()
         {
+            if(!aboutDatesFromMenu)aboutDatesFromMenu=game.State==RoundState.Menu;
             var p=ModalPanel("About dates",220,110,1160,680);
             showingAboutDates=true;
             Text("Title",p,45,23,1070,58,"About dates",43,DateRushArt.Cream,true,TextAnchor.MiddleCenter,true);
@@ -170,7 +197,10 @@ namespace DateRush
                 Text("Variety name",card,144,13,366,32,variety.name,24,DateRushArt.Gold,true);
                 Text("Description",card,144,48,366,63,variety.description,20,DateRushArt.Cream,false,TextAnchor.UpperLeft);
             }
-            Button("Back to pause",p,365,584,430,58,"BACK TO PAUSE",ShowPause,true,22);
+            if(aboutDatesFromMenu)
+                Button("Back to menu",p,365,584,430,58,"BACK TO MENU",ShowMenu,true,22);
+            else
+                Button("Back to pause",p,365,584,430,58,"BACK TO PAUSE",()=>ShowPause(wavePause),true,22);
         }
         internal bool TryCloseAboutDates()
         {
@@ -213,7 +243,11 @@ namespace DateRush
         {
             if(soundLabel)soundLabel.text=game.Muted?"SOUND OFF":"SOUND ON";
         }
-        public void Notice(string text,Color color){notice.text=text;notice.color=color;noticeLife=2.7f;}
+        public void Notice(string text,Color color)
+        {
+            notice.text=text;notice.color=Color.white;noticeLife=2.7f;
+            noticeFrame.enabled=noticeBackground.enabled=true;
+        }
         public void FloatText(Vector2 at,string content,Color color)
         {
             at.x=Mathf.Clamp(at.x,170,1430);
@@ -230,8 +264,17 @@ namespace DateRush
         }
         void Update()
         {
+            if(wavePause && game.State==RoundState.Paused)
+            {
+                waveCountdown-=Time.unscaledDeltaTime;
+                int shown=Mathf.Max(1,Mathf.CeilToInt(waveCountdown));
+                if(waveCountdownLabel)waveCountdownLabel.text=shown.ToString();
+                if(waveCountdown<=0)game.Resume();
+                return;
+            }
             if(game.State!=RoundState.Playing)return;
             float dt=Time.deltaTime;noticeLife-=dt;notice.enabled=noticeLife>0;
+            noticeFrame.enabled=noticeBackground.enabled=noticeLife>0;
             for(int i=floating.Count-1;i>=0;i--)
             {
                 var f=floating[i];f.life-=dt;
