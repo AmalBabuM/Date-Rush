@@ -26,6 +26,10 @@ namespace DateRush
         readonly List<BeltDate> dates=new List<BeltDate>();
         readonly List<BeltDate> candidates=new List<BeltDate>();
         DateRushGame game;
+        int labelsTarget=-1;
+        RoundState labelsState=(RoundState)(-1);
+        int labelsVersion;
+        int refreshedLabelsVersion=-1;
         public void Initialise(DateRushGame owner, Sprite wheel = null)
         {
             game=owner;
@@ -119,6 +123,10 @@ namespace DateRush
         }
         void LateUpdate()
         {
+            if(labelsTarget==game.Target && labelsState==game.State && refreshedLabelsVersion==labelsVersion)return;
+            labelsTarget=game.Target;
+            labelsState=game.State;
+            refreshedLabelsVersion=labelsVersion;
             foreach(var date in dates)
             {
                 var tag=date.label.gameObject;
@@ -169,6 +177,7 @@ namespace DateRush
             DateRushArt.SetSprite(date.fruit,game.GetDateSprite(variety),DateSize);
             date.fruit.color=Color.white;
             date.label.text=DateCatalog.All[variety].name;
+            labelsVersion++;
         }
         public static Vector2 Path(float t)=>BeltPath(t)-ConveyorLift;
         static Vector2 BeltPath(float t)
@@ -191,8 +200,15 @@ namespace DateRush
                 return false;
             }
 
-            if(Random.value<chance && candidates.Exists(date=>date.variety==target))
-                candidates.RemoveAll(date=>date.variety!=target);
+            if(Random.value<chance)
+            {
+                bool hasTarget=false;
+                for(int i=0;i<candidates.Count;i++)
+                    if(candidates[i].variety==target){hasTarget=true;break;}
+                if(hasTarget)
+                    for(int i=candidates.Count-1;i>=0;i--)
+                        if(candidates[i].variety!=target)candidates.RemoveAt(i);
+            }
             var source=candidates[Random.Range(0,candidates.Count)];
             variety=source.variety;
             position=Path(source.progress);
