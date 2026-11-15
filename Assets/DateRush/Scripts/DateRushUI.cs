@@ -16,7 +16,7 @@ namespace DateRush
         RectTransform root,hud,modal,effects;
         Text notice,soundLabel;
         Text waveCountdownLabel;
-        Image noticeFrame,noticeBackground;
+        Image noticeFrame;
         Font bodyFont,titleFont;
         float noticeLife;
         bool showingAboutDates;
@@ -88,9 +88,9 @@ namespace DateRush
                 Image("Left pause bar",pause.transform,19,18,6,20,DateRushArt.Cream);
                 Image("Right pause bar",pause.transform,31,18,6,20,DateRushArt.Cream);
             }
-            noticeFrame=Image("Notice rounded border",hud,500,490,600,46,Color.white);
-            noticeBackground=Image("Notice black background",hud,503,493,594,40,Color.black);
-            noticeFrame.enabled=noticeBackground.enabled=false;
+            noticeFrame=Image("Notice rounded white outline",hud,500,490,600,46,Color.white,DateRushArt.Shape("rounded border"));
+            noticeFrame.type=UnityEngine.UI.Image.Type.Sliced;
+            noticeFrame.enabled=false;
             notice=Text("Target change announcement",hud,510,491,580,43,"",21,Color.white,true,TextAnchor.MiddleCenter);
             var outline=notice.gameObject.AddComponent<Outline>();outline.effectColor=new Color(.15f,.06f,.02f,.9f);outline.effectDistance=new Vector2(2,-2)*TextSampleScale;
         }
@@ -246,7 +246,7 @@ namespace DateRush
         public void Notice(string text,Color color)
         {
             notice.text=text;notice.color=Color.white;noticeLife=2.7f;
-            noticeFrame.enabled=noticeBackground.enabled=true;
+            noticeFrame.enabled=true;
         }
         public void FloatText(Vector2 at,string content,Color color)
         {
@@ -274,7 +274,7 @@ namespace DateRush
             }
             if(game.State!=RoundState.Playing)return;
             float dt=Time.deltaTime;noticeLife-=dt;notice.enabled=noticeLife>0;
-            noticeFrame.enabled=noticeBackground.enabled=noticeLife>0;
+            noticeFrame.enabled=noticeLife>0;
             for(int i=floating.Count-1;i>=0;i--)
             {
                 var f=floating[i];f.life-=dt;
