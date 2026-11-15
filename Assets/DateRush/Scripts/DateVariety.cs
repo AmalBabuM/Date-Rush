@@ -16,12 +16,12 @@ namespace DateRush
     public static class DateCatalog
     {
         public static readonly DateVariety[] All = {
-            new DateVariety("Khalas", "A favourite in the UAE. It is golden brown, soft and tastes a little like caramel.", new Color(.68f,.29f,.08f)),
-            new DateVariety("Fardh", "Look for dark reddish-brown skin. This date is firm and has a small seed.", new Color(.35f,.13f,.19f)),
-            new DateVariety("Khenaizi", "This date grows in the UAE. It turns deep red as it gets ripe.", new Color(.43f,.12f,.10f)),
-            new DateVariety("Lulu", "Lulu means pearl in Arabic. These dates are small and round, a little like pearls.", new Color(.48f,.24f,.10f)),
-            new DateVariety("Sukkary", "Its name comes from the Arabic word for sugar. Look for golden, wrinkled skin.", new Color(.84f,.47f,.16f)),
-            new DateVariety("Ajwa", "These small, dark dates grow near Madinah in Saudi Arabia. They are soft inside.", new Color(.19f,.12f,.21f))
+            new DateVariety("Khalas", "A prized Al-Ahsa cultivar, Khalas became a signature Gulf market date and is widely grown in UAE oases.", new Color(.68f,.29f,.08f)),
+            new DateVariety("Fardh", "A major Abu Dhabi cultivar, especially in Al Ain, Fardh is valued as a commercial crop and eaten fresh or dried.", new Color(.35f,.13f,.19f)),
+            new DateVariety("Khenaizi", "Khenaizi remains part of the UAE's oasis harvest and is celebrated among traditional varieties at local date festivals.", new Color(.43f,.12f,.10f)),
+            new DateVariety("Lulu", "Lulu is grown in Al Ain's historic oases, where date palms have supported food, livelihoods and community life for generations.", new Color(.48f,.24f,.10f)),
+            new DateVariety("Sukkary", "From Saudi Arabia's Qassim region, Sukkary is a premium variety grown across the Kingdom and enjoyed fresh or fully ripe.", new Color(.84f,.47f,.16f)),
+            new DateVariety("Ajwa", "Cultivated around Medina, Ajwa is one of Saudi Arabia's most historic varieties and a treasured gift for visitors.", new Color(.19f,.12f,.21f))
         };
     }
 

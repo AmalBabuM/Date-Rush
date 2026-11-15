@@ -139,7 +139,8 @@ namespace DateRush
         void PrepareFullScreenMenu()
         {
             ClearModal();hud.gameObject.SetActive(false);modal.gameObject.SetActive(true);
-            Image("Menu background image",modal,0,0,1600,900,Color.white,game.SharedBackgroundSprite);
+            var menuBackground=Image("Menu background image",modal,0,0,1600,900,Color.white,DateRushArt.Load("MenuBackground"));
+            menuBackground.preserveAspect=true;
             var shade=Image("Menu background shade",modal,0,0,1600,900,new Color(.07f,.03f,.01f,.2f));shade.raycastTarget=true;
         }
         void ShowSettings()
@@ -197,9 +198,8 @@ namespace DateRush
             Text("Date name",p,70,253,680,45,target.name,31,DateRushArt.Gold,true,TextAnchor.MiddleCenter);
             Text("Date information",p,100,303,620,75,target.description,21,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
             Text("Goal",p,70,390,680,33,"Catch "+game.harvestGoal+" matching dates before the "+game.roundSeconds+"-second timer ends.",19,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
-            Text("Controls",p,70,432,680,70,"MOVE  A / D or ← →\nJUMP  Space / W / ↑     DASH  Shift",19,DateRushArt.Gold,true,TextAnchor.MiddleCenter);
-            Button("Begin catching",p,145,526,530,62,"START CATCHING  >",game.StartPlaying,true,23);
-            Text("Wave changes",p,70,600,680,35,"Your target changes every 3 correct catches. Pause to see its details.",17,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
+            Button("Begin catching",p,145,465,530,62,"START CATCHING  >",game.StartPlaying,true,23);
+            Text("Wave changes",p,70,544,680,35,"Your target changes every 3 correct catches. Pause to see its details.",17,DateRushArt.Cream,false,TextAnchor.MiddleCenter);
         }
         void ShowAboutDates()
         {
